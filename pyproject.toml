@@ -1,0 +1,43 @@
+[project]
+name = "odoo-addons-analyzer"
+authors = [
+    {name = "Odoo Community Association (OCA)"},
+    {name = "Sébastien Alix", email="sebastien.alix@camptocamp.com"}
+]
+description = "Collect data from Odoo module folders."
+readme = "README.md"
+keywords = ["odoo", "oca", "analyze", "collect", "modules", "addons"]
+license = {file = "LICENSE"}
+classifiers = [
+    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+    "Programming Language :: Python :: 3",
+    "Framework :: Odoo",
+]
+dependencies = [
+    "pygount<1.7.0",
+]
+requires-python = ">=3.8"
+dynamic = ["version"]
+
+[project.urls]
+homepage = "https://github.com/sebalix/odoo-addons-analyzer"
+documentation = "https://github.com/sebalix/odoo-addons-analyzer"
+repository = "https://github.com/sebalix/odoo-addons-analyzer"
+
+[project.optional-dependencies]
+test = [
+  "pytest",
+]
+
+[build-system]
+requires = ["setuptools>=64", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages]
+find = {}
+
+[tool.setuptools_scm]
+
+[tool.black]
+line-length = 79
+skip-string-normalization = "True"
