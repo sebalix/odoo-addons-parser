@@ -8,6 +8,8 @@ import pathlib
 
 import pygount
 
+from .code import PyFile
+
 _logger = logging.getLogger(__name__)
 
 
@@ -17,11 +19,14 @@ class ModuleAnalysis:
         folder_path,
         languages=("Python", "XML", "CSS", "JavaScript"),
         repo_analysis=None,
+        scan_models=True,
     ):
         self.folder_path = folder_path
         self.languages = languages
         self.repo_analysis = repo_analysis
+        self._scan_models = scan_models
         self.summary = pygount.ProjectSummary()
+        self.models = {}
         self._run()
 
     @property
@@ -56,23 +61,51 @@ class ModuleAnalysis:
 
     def _run(self):
         for file_path in self.file_paths:
-            print(file_path)
-            try:
-                source_analysis = pygount.SourceAnalysis.from_file(
-                    file_path,
-                    group=os.path.basename(self.folder_path),
-                    encoding="utf-8",
-                )
-            except Exception:
-                _logger.warning(
-                    f"Unable to analyze {file_path}", stack_info=True, exc_info=True
-                )
+            self._code_stats(file_path)
+            if self._scan_models:
+                self._scan_models_from_file(file_path)
+
+    def _code_stats(self, file_path):
+        try:
+            source_analysis = pygount.SourceAnalysis.from_file(
+                file_path,
+                group=os.path.basename(self.folder_path),
+                encoding="utf-8",
+            )
+        except Exception:
+            _logger.warning(
+                f"Unable to analyze {file_path}", stack_info=True, exc_info=True
+            )
+        else:
+            self.summary.add(source_analysis)
+
+    def _scan_models_from_file(self, file_path):
+        try:
+            pyfile = PyFile(file_path)
+        except ValueError:
+            return
+        except RuntimeError as exc:
+            _logger.warning(str(exc))
+            return
+        data = pyfile.to_dict()
+        for model in data["models"].values():
+            key = model.get("name") or model.get("inherit")
+            if key not in self.models:
+                self.models.setdefault(key, {}).update(model)
             else:
-                self.summary.add(source_analysis)
+                if model.get("fields"):
+                    self.models[key].setdefault("fields", {}).update(model["fields"])
+                if model.get("methods"):
+                    self.models[key].setdefault("methods", {}).update(model["methods"])
 
     def to_dict(self):
         summaries = dict.fromkeys(self.languages, 0)
-        data = {"code": summaries, "manifest": self.manifest}
+        data = {
+            "code": summaries,
+            "manifest": self.manifest,
+        }
+        if self._scan_models:
+            data["models"] = self.models
         for summary in self.summary.language_to_language_summary_map.values():
             for language in self.languages:
                 if not summary.language.startswith(language):
