@@ -4,10 +4,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*$py.class
-
-# C extensions
-*.so
 
 # Distribution / packaging
 .Python
@@ -27,28 +23,6 @@ var/
 .installed.cfg
 *.egg
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*,cover
-.hypothesis/
-
-# Translations
-*.mo
-*.pot
-
-# Sphinx documentation
-docs/_build/
-
 # pyenv
 .python-version
 
@@ -56,5 +30,9 @@ docs/_build/
 .env
 
 # virtualenv
+.venv
 venv/
 ENV/
+
+# Lint
+/.ruff_cache
