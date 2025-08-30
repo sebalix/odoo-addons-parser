@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2025 Sebastien Alix <https://github.com/sebalix
+     License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). -->
+<odoo>
+
+  <record id="res_partner_form_view" model="ir.ui.view">
+    <field name="name">res.partner.form.inherit</field>
+    <field name="model">res.partner</field>
+    <field name="inherit_id" ref="base.res_partner_form_view"/>
+    <field name="arch" type="xml">
+      <field name="name" position="after">
+        <field name="custom_field" />
+        <field name="computed_field" />
+      </field>
+    </field>
+  </record>
+
+</odoo>
