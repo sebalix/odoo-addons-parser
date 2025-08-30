@@ -4,6 +4,7 @@
 
 import ast
 import pathlib
+import typing
 
 BASE_CLASSES = [
     "AbstractModel",
@@ -61,7 +62,7 @@ class PyFile:
         except Exception as exc:
             raise RuntimeError(f"Unable to parse file {self.path}") from exc
 
-    def _get_models(self):
+    def _get_models(self) -> dict:
         models = {}
         for elt in self.content.body:
             try:
@@ -89,7 +90,7 @@ class PyFile:
 class OdooModel:
     """Odoo model definition representation."""
 
-    def __init__(self, pyfile, ast_cls):
+    def __init__(self, pyfile: PyFile, ast_cls: ast.ClassDef):
         self.pyfile = pyfile
         assert self.is_model(ast_cls) or self.is_base_class(ast_cls)
         self.type_ = self._get_type(ast_cls)
@@ -102,14 +103,14 @@ class OdooModel:
         self.methods = self._get_methods(ast_cls)
 
     @classmethod
-    def is_model(cls, ast_cls):
+    def is_model(cls, ast_cls) -> bool:
         """Check if `ast_cls` is an Odoo model."""
         name = cls._get_attr_value(ast_cls, "_name")
         inherit = cls._get_attr_value(ast_cls, "_inherit")
         return bool(name or inherit)
 
     @classmethod
-    def is_base_class(cls, ast_cls):
+    def is_base_class(cls, ast_cls) -> bool:
         """Check if `ast_cls` is an Odoo base class."""
         bases = []
         for base in ast_cls.bases:
@@ -124,7 +125,7 @@ class OdooModel:
         return False
 
     @staticmethod
-    def _get_type(ast_cls):
+    def _get_type(ast_cls) -> str:
         """Return the type of the Odoo model.
 
         Available types are 'Model', 'AbstractModel', 'TransientModel'...
@@ -138,7 +139,9 @@ class OdooModel:
                 return base.id
 
     @staticmethod
-    def _get_attr_value(ast_cls: ast.ClassDef, attr_name: str):
+    def _get_attr_value(
+        ast_cls: ast.ClassDef, attr_name: str
+    ) -> typing.Union[str, dict]:
         """Return value of an attribute.
 
         It supports only attributes having basic values. E.g. if an attribute
@@ -171,7 +174,7 @@ class OdooModel:
                         if values:
                             return values
 
-    def _get_fields(self, ast_cls: ast.ClassDef):
+    def _get_fields(self, ast_cls: ast.ClassDef) -> dict:
         """Return the fields declared in current data model."""
         fields = {}
         for elt in ast_cls.body:
@@ -187,7 +190,7 @@ class OdooModel:
             fields[field.name] = field.to_dict()
         return fields
 
-    def _get_methods(self, ast_cls: ast.ClassDef):
+    def _get_methods(self, ast_cls: ast.ClassDef) -> dict:
         """Return the methods declared in current data model."""
         methods = {}
         for elt in ast_cls.body:
@@ -203,7 +206,7 @@ class OdooModel:
             methods[method.name] = method.to_dict()
         return methods
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         data = {"type": self.type_}
         if self.auto is not None:
             data["auto"] = self.auto
@@ -216,13 +219,13 @@ class OdooModel:
 class OdooField:
     """Odoo field representation."""
 
-    def __init__(self, ast_cls):
+    def __init__(self, ast_cls: ast.Assign):
         assert self.is_field(ast_cls)
         self.name = ast_cls.targets[0].id
         self.type_ = self._extract_type(ast_cls)
 
     @classmethod
-    def is_field(cls, ast_cls):
+    def is_field(cls, ast_cls: ast.Assign) -> bool:
         """Check if `ast_cls` is an Odoo field."""
         if isinstance(ast_cls, ast.Assign) and ast_cls.targets:
             if not isinstance(ast_cls.value, ast.Call):
@@ -234,7 +237,7 @@ class OdooField:
         return False
 
     @classmethod
-    def _extract_type(cls, ast_cls):
+    def _extract_type(cls, ast_cls: ast.Assign) -> str:
         field_type = None
         # Support e.g.'fields.Char'
         if isinstance(ast_cls.value.func, ast.Attribute):
@@ -245,28 +248,29 @@ class OdooField:
         if field_type in FIELD_TYPES:
             return field_type
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {"name": self.name, "type": self.type_}
 
 
 class OdooMethod:
     """Odoo data model method representation."""
 
-    def __init__(self, ast_cls):
+    def __init__(self, ast_cls: ast.FunctionDef):
         assert self.is_method(ast_cls)
         self.name = ast_cls.name
         self.decorators = self._extract_decorators(ast_cls)
         self.signature = self._extract_method_signature(ast_cls)
 
     @classmethod
-    def is_method(cls, ast_cls):
+    def is_method(cls, ast_cls: ast.FunctionDef) -> bool:
         """Check if `ast_cls` is a method/function."""
         if isinstance(ast_cls, ast.FunctionDef):
             # Skip private methods
             return not ast_cls.name.startswith("__")
+        return False
 
     @classmethod
-    def _extract_decorators(cls, ast_cls):
+    def _extract_decorators(cls, ast_cls: ast.FunctionDef) -> tuple[str, ...]:
         decorators = []
         for dec in ast_cls.decorator_list:
             # E.g. @model
@@ -287,7 +291,7 @@ class OdooMethod:
         return tuple(decorators)
 
     @classmethod
-    def _extract_decorator_signature(cls, ast_cls):
+    def _extract_decorator_signature(cls, ast_cls: ast.Call) -> tuple[str, ...]:
         assert isinstance(ast_cls, ast.Call)
         args = []
         for arg in ast_cls.args:
@@ -298,7 +302,7 @@ class OdooMethod:
         return tuple(args + kwargs)
 
     @classmethod
-    def _extract_method_signature(cls, ast_cls):
+    def _extract_method_signature(cls, ast_cls: ast.FunctionDef) -> tuple[str, ...]:
         assert isinstance(ast_cls, ast.FunctionDef)
         args = [arg.arg for arg in ast_cls.args.args]
         defaults = []
@@ -311,14 +315,14 @@ class OdooMethod:
             signature[-i - 1] = f"{arg}={default}"
         return tuple(signature)
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         data = {"name": self.name, "signature": self.signature}
         if self.decorators:
             data["decorators"] = self.decorators
         return data
 
 
-def ast_to_string(elt):
+def ast_to_string(elt) -> str:
     """Return the string representation of an ast element."""
     if isinstance(elt, ast.Name):
         return elt.id
