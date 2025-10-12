@@ -1,12 +1,9 @@
 [project]
-name = "odoo-addons-analyzer"
-authors = [
-    {name = "Odoo Community Association (OCA)"},
-    {name = "Sébastien Alix", email="sebastien.alix@camptocamp.com"}
-]
+name = "odoo-addons-parser"
+authors = [{name = "Sébastien Alix"}]
 description = "Collect data from Odoo module folders."
 readme = "README.md"
-keywords = ["odoo", "oca", "analyze", "collect", "modules", "addons"]
+keywords = ["odoo", "oca", "analyze", "parser", "collect", "modules", "addons"]
 license = {file = "LICENSE"}
 classifiers = [
     "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
@@ -20,9 +17,9 @@ requires-python = ">=3.9"
 dynamic = ["version"]
 
 [project.urls]
-homepage = "https://github.com/sebalix/odoo-addons-analyzer"
-documentation = "https://github.com/sebalix/odoo-addons-analyzer"
-repository = "https://github.com/sebalix/odoo-addons-analyzer"
+homepage = "https://github.com/sebalix/odoo-addons-parser"
+documentation = "https://github.com/sebalix/odoo-addons-parser"
+repository = "https://github.com/sebalix/odoo-addons-parser"
 
 [project.optional-dependencies]
 test = [

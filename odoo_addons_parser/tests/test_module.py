@@ -8,25 +8,25 @@ from . import common
 
 class TestModule(common.CommonCase):
     def test_init(self):
-        mod = self._run_module_analysis()
+        mod = self._run_module_parser()
         self.assertEqual(mod.name, self.module_name)
         self.assertTrue(mod.file_paths)
         self.assertDictEqual(mod.manifest, self.module_manifest)
         self.assertDictEqual(mod.models, self.module_models)
 
     def test_init_no_scan_models(self):
-        mod = self._run_module_analysis(scan_models=False)
+        mod = self._run_module_parser(scan_models=False)
         self.assertEqual(mod.name, self.module_name)
         self.assertTrue(mod.file_paths)
         self.assertDictEqual(mod.manifest, self.module_manifest)
         self.assertFalse(mod.models)
 
     def test_to_dict(self):
-        mod = self._run_module_analysis()
+        mod = self._run_module_parser()
         self.assertDictEqual(mod.to_dict(), self.module_to_dict)
 
     def test_to_dict_no_scan_models(self):
-        mod = self._run_module_analysis(scan_models=False)
+        mod = self._run_module_parser(scan_models=False)
         mod_to_dict = copy.deepcopy(self.module_to_dict)
         del mod_to_dict["models"]
         self.assertDictEqual(mod.to_dict(), mod_to_dict)

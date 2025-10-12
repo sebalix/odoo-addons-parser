@@ -1,5 +1,5 @@
-odoo-addons-analyzer
-====================
+odoo-addons-parser
+==================
 
 Python package to collect data from Odoo module folders.
 
@@ -9,14 +9,14 @@ Features:
 - count the number of lines of code (Python, XML, JavaScript and CSS by default)
 - read the manifest file (to get useful data like authors or dependencies)
 
-Example with `ModuleAnalysis` class:
+Example with `ModuleParser` class:
 
 ```python
-from odoo_addons_analyzer import ModuleAnalysis
+from odoo_addons_parser import ModuleParser
 from pprint import pprint as pp
 
-ma = ModuleAnalysis("/path/to/OCA/server-tools/server_environment")
-pp(ma.to_dict())
+mod = ModuleParser("/path/to/OCA/server-tools/server_environment")
+pp(mod.to_dict())
 ```
 =>
 ```python
@@ -37,12 +37,12 @@ pp(ma.to_dict())
  'name': 'server_environment',
 ```
 
-With `RepositoryAnalysis` class:
+With `RepositoryParser` class:
 
 ```python
-from odoo_addons_analyzer import RepositoryAnalysis
-ra = RepositoryAnalysis("/path/to/OCA/server-tools")
-pp(ra.to_dict())
+from odoo_addons_parser import RepositoryParser
+repo = RepositoryParser("/path/to/OCA/server-tools")
+pp(repo.to_dict())
 ```
 =>
 ```python

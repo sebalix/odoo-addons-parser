@@ -6,10 +6,10 @@ import os
 import pathlib
 import typing
 
-from .module import ModuleAnalysis
+from .module import ModuleParser
 
 
-class RepositoryAnalysis:
+class RepositoryParser:
     def __init__(
         self,
         folder_path: typing.Union[str, os.PathLike],
@@ -32,13 +32,13 @@ class RepositoryAnalysis:
         )
 
     def _scan_module(self, module_path):
-        analysis = ModuleAnalysis(
+        parser = ModuleParser(
             module_path,
             languages=self.languages,
-            repo_analysis=self,
+            repo_parser=self,
             scan_models=self._scan_models,
         )
-        return analysis.to_dict()
+        return parser.to_dict()
 
     def to_dict(self) -> dict:
         data = {}
