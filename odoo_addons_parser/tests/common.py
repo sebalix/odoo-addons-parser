@@ -4,7 +4,7 @@
 import pathlib
 import unittest
 
-from odoo_addons_analyzer import ModuleAnalysis, RepositoryAnalysis
+from odoo_addons_parser import ModuleParser, RepositoryParser
 
 
 class CommonCase(unittest.TestCase):
@@ -34,7 +34,7 @@ class CommonCase(unittest.TestCase):
             "license": "AGPL-3",
             "name": "Test",
             "version": "1.0.0",
-            "website": "https://example.com/odoo-addons-analyzer",
+            "website": "https://example.com/odoo-addons-parser",
         }
         cls.module_models = {
             "res.partner": {
@@ -85,9 +85,9 @@ class CommonCase(unittest.TestCase):
         }
 
     @classmethod
-    def _run_module_analysis(cls, **kw):
-        return ModuleAnalysis(cls.module_path, **kw)
+    def _run_module_parser(cls, **kw):
+        return ModuleParser(cls.module_path, **kw)
 
     @classmethod
-    def _run_repo_analysis(cls):
-        return RepositoryAnalysis(cls.repo_path)
+    def _run_repo_parser(cls):
+        return RepositoryParser(cls.repo_path)

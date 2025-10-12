@@ -12,22 +12,22 @@ import pygount
 from .code import PyFile
 
 if typing.TYPE_CHECKING:
-    from .repository import RepositoryAnalysis
+    from .repository import RepositoryParser
 
 _logger = logging.getLogger(__name__)
 
 
-class ModuleAnalysis:
+class ModuleParser:
     def __init__(
         self,
         folder_path: typing.Union[str, os.PathLike],
         languages: tuple = ("Python", "XML", "CSS", "JavaScript"),
-        repo_analysis: typing.Optional["RepositoryAnalysis"] = None,
+        repo_parser: typing.Optional["RepositoryParser"] = None,
         scan_models: bool = True,
     ):
         self.folder_path = pathlib.Path(folder_path).resolve()
         self.languages = languages
-        self.repo_analysis = repo_analysis
+        self.repo_parser = repo_parser
         self._scan_models = scan_models
         self.summary = pygount.ProjectSummary()
         self.models = {}

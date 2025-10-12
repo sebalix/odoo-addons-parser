@@ -6,10 +6,10 @@ from . import common
 
 class TestRepository(common.CommonCase):
     def test_init(self):
-        repo = self._run_repo_analysis()
+        repo = self._run_repo_parser()
         self.assertEqual(repo.name, self.repo_name)
         self.assertTrue(repo.module_paths)
 
     def test_to_dict(self):
-        repo = self._run_repo_analysis()
+        repo = self._run_repo_parser()
         self.assertDictEqual(repo.to_dict(), {self.module_name: self.module_to_dict})

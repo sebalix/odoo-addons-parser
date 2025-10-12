@@ -17,4 +17,4 @@ jobs:
       - name: Install dependencies
         run: pip install .[test]
       - name: Run tests
-        run: coverage run -m pytest -v odoo_addons_analyzer/tests && coverage report -m
+        run: coverage run -m pytest -v odoo_addons_parser/tests && coverage report -m

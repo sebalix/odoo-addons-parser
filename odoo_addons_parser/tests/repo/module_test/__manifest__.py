@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "category": "Test Module",
     "author": "Camptocamp, Odoo Community Association (OCA)",
-    "website": "https://example.com/odoo-addons-analyzer",
+    "website": "https://example.com/odoo-addons-parser",
     "license": "AGPL-3",
     "depends": ["base"],
     "data": ["views/res_partner.xml"],
