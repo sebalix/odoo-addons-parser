@@ -85,7 +85,7 @@ class ModuleAnalysis:
 
     def _scan_models_from_file(self, file_path: os.PathLike):
         try:
-            pyfile = PyFile(file_path)
+            pyfile = PyFile(file_path, module_path=self.folder_path)
         except ValueError:
             return
         except RuntimeError as exc:
@@ -105,6 +105,7 @@ class ModuleAnalysis:
     def to_dict(self) -> dict:
         summaries = dict.fromkeys(self.languages, 0)
         data = {
+            "name": self.name,
             "code": summaries,
             "manifest": self.manifest,
         }

@@ -38,13 +38,30 @@ class CommonCase(unittest.TestCase):
         }
         cls.module_models = {
             "res.partner": {
+                "file_path": pathlib.Path("models/res_partner.py"),
+                "class_name": "ResPartner",
                 "fields": {
                     "computed_field": {
                         "name": "computed_field",
                         "type": "Char",
+                        "lineno": 11,
+                        "end_lineno": 15,
+                        "code": '    computed_field = fields.Char(\n        compute="_compute_computed_field",\n        readonly=False,\n        store=True,\n    )\n',
                     },
-                    "custom_field": {"name": "custom_field", "type": "Char"},
-                    "new_custom_field": {"name": "new_custom_field", "type": "Char"},
+                    "custom_field": {
+                        "name": "custom_field",
+                        "type": "Char",
+                        "lineno": 10,
+                        "end_lineno": 10,
+                        "code": '    custom_field = fields.Char(required=True, default="Test")\n',
+                    },
+                    "new_custom_field": {
+                        "name": "new_custom_field",
+                        "type": "Char",
+                        "lineno": 27,
+                        "end_lineno": 27,
+                        "code": "    new_custom_field = fields.Char()\n",
+                    },
                 },
                 "inherit": "res.partner",
                 "methods": {
@@ -52,12 +69,16 @@ class CommonCase(unittest.TestCase):
                         "decorators": ("api.depends('custom_field')",),
                         "name": "_compute_computed_field",
                         "signature": ("self",),
+                        "lineno": 18,
+                        "end_lineno": 20,
+                        "code": "    def _compute_computed_field(self):\n        for rec in self:\n            rec.computed_field = rec.customer_field\n",
                     }
                 },
                 "type": "Model",
             }
         }
         cls.module_to_dict = {
+            "name": cls.module_name,
             "code": cls.module_code_stats,
             "manifest": cls.module_manifest,
             "models": cls.module_models,

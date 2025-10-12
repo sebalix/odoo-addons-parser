@@ -47,24 +47,26 @@ class PyFile:
     Such file could contain Odoo model definitions.
     """
 
-    def __init__(self, path: pathlib.Path):
+    def __init__(self, path: pathlib.Path, module_path: pathlib.Path = None):
         if not path.suffix == ".py":
             raise ValueError(f"{path} is not a Python file")
         self.path = path
-        self.content = self._parse_file()
+        self.module_path = module_path
+        self.lines, self.ast_content = self._parse_file()
         self.models = self._get_models()
 
     def _parse_file(self):
         try:
             with open(self.path) as file_:
-                content = file_.read()
-                return ast.parse(content)
+                lines = file_.readlines()
+                content = "".join(lines)
+                return lines, ast.parse(content)
         except Exception as exc:
             raise RuntimeError(f"Unable to parse file {self.path}") from exc
 
     def _get_models(self) -> dict:
         models = {}
-        for elt in self.content.body:
+        for elt in self.ast_content.body:
             try:
                 if isinstance(elt, ast.ClassDef) and OdooModel.is_model(elt):
                     model = OdooModel(self, elt)
@@ -93,6 +95,8 @@ class OdooModel:
     def __init__(self, pyfile: PyFile, ast_cls: ast.ClassDef):
         self.pyfile = pyfile
         assert self.is_model(ast_cls) or self.is_base_class(ast_cls)
+        self.file_path = self.pyfile.path.relative_to(self.pyfile.module_path)
+        self.class_name = ast_cls.name
         self.type_ = self._get_type(ast_cls)
         self.name = self._get_attr_value(ast_cls, "_name")
         self.inherit = self._get_attr_value(ast_cls, "_inherit")
@@ -181,7 +185,7 @@ class OdooModel:
             if not OdooField.is_field(elt):
                 continue
             try:
-                field = OdooField(elt)
+                field = OdooField(self.pyfile, elt)
             except Exception as exc:
                 raise RuntimeError(
                     f"Unable to parse field {elt.name}:{elt.lineno} "
@@ -197,7 +201,7 @@ class OdooModel:
             if not OdooMethod.is_method(elt):
                 continue
             try:
-                method = OdooMethod(elt)
+                method = OdooMethod(self.pyfile, elt)
             except Exception as exc:
                 raise RuntimeError(
                     f"Unable to parse method {elt.name}:{elt.lineno} "
@@ -207,7 +211,11 @@ class OdooModel:
         return methods
 
     def to_dict(self) -> dict:
-        data = {"type": self.type_}
+        data = {
+            "file_path": self.file_path,
+            "class_name": self.class_name,
+            "type": self.type_,
+        }
         if self.auto is not None:
             data["auto"] = self.auto
         for attr in ("name", "inherit", "inherits", "fields", "methods"):
@@ -219,10 +227,13 @@ class OdooModel:
 class OdooField:
     """Odoo field representation."""
 
-    def __init__(self, ast_cls: ast.Assign):
+    def __init__(self, pyfile: PyFile, ast_cls: ast.Assign):
+        self.pyfile = pyfile
         assert self.is_field(ast_cls)
         self.name = ast_cls.targets[0].id
         self.type_ = self._extract_type(ast_cls)
+        self.lineno, self.end_lineno = ast_cls.lineno, ast_cls.end_lineno
+        self.code = "".join(self.pyfile.lines[self.lineno - 1 : self.end_lineno])
 
     @classmethod
     def is_field(cls, ast_cls: ast.Assign) -> bool:
@@ -249,17 +260,26 @@ class OdooField:
             return field_type
 
     def to_dict(self) -> dict:
-        return {"name": self.name, "type": self.type_}
+        return {
+            "name": self.name,
+            "type": self.type_,
+            "lineno": self.lineno,
+            "end_lineno": self.end_lineno,
+            "code": self.code,
+        }
 
 
 class OdooMethod:
     """Odoo data model method representation."""
 
-    def __init__(self, ast_cls: ast.FunctionDef):
+    def __init__(self, pyfile: PyFile, ast_cls: ast.FunctionDef):
+        self.pyfile = pyfile
         assert self.is_method(ast_cls)
         self.name = ast_cls.name
         self.decorators = self._extract_decorators(ast_cls)
         self.signature = self._extract_method_signature(ast_cls)
+        self.lineno, self.end_lineno = ast_cls.lineno, ast_cls.end_lineno
+        self.code = "".join(self.pyfile.lines[self.lineno - 1 : self.end_lineno])
 
     @classmethod
     def is_method(cls, ast_cls: ast.FunctionDef) -> bool:
@@ -316,7 +336,13 @@ class OdooMethod:
         return tuple(signature)
 
     def to_dict(self) -> dict:
-        data = {"name": self.name, "signature": self.signature}
+        data = {
+            "name": self.name,
+            "signature": self.signature,
+            "lineno": self.lineno,
+            "end_lineno": self.end_lineno,
+            "code": self.code,
+        }
         if self.decorators:
             data["decorators"] = self.decorators
         return data
