@@ -8,6 +8,7 @@ Features:
 - scan a folder of modules (repository) or a module only
 - count the number of lines of code (Python, XML, JavaScript and CSS by default)
 - read the manifest file (to get useful data like authors or dependencies)
+- extract Odoo models info (fields, methods...)
 
 Example with `ModuleAnalysis` class:
 
@@ -32,7 +33,9 @@ pp(ma.to_dict())
               'name': 'server configuration environment files',
               'summary': 'move some configurations out of the database',
               'version': '14.0.1.0.0',
-              'website': 'https://github.com/OCA/server-env'}}
+              'website': 'https://github.com/OCA/server-env'}},
+ 'models': ...
+ 'name': 'server_environment',
 ```
 
 With `RepositoryAnalysis` class:
@@ -62,7 +65,9 @@ pp(ra.to_dict())
                                   'summary': 'Store accounts and credentials '
                                              'encrypted by environment',
                                   'version': '14.0.1.0.0',
-                                  'website': 'https://github.com/OCA/server-env'}},
+                                  'website': 'https://github.com/OCA/server-env'},
+                     'models': ...,
+                     'name': 'data_encryption'},
  'mail_environment': {'code': {'CSS': 0,
                                'JavaScript': 0,
                                'Python': 43,
@@ -78,6 +83,8 @@ pp(ra.to_dict())
                                    'summary': 'Configure mail servers with '
                                               'server_environment_files',
                                    'version': '14.0.1.0.0',
-                                   'website': 'https://github.com/OCA/server-env'}},
+                                   'website': 'https://github.com/OCA/server-env'},
+                     'models': ...,
+                     'name': 'mail_environment'},
 [...]
 ```
