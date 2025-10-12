@@ -1,5 +1,7 @@
-odoo-addons-parser
-==================
+[![Pre-commit Status](https://github.com/sebalix/odoo-addons-parser/actions/workflows/pre-commit.yml/badge.svg?branch=main)](https://github.com/sebalix/odoo-addons-parser/actions/workflows/pre-commit.yml?query=branch%3Amain)
+[![Tests Status](https://github.com/sebalix/odoo-addons-parser/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/sebalix/odoo-addons-parser/actions/workflows/test.yml?query=branch%3Amain)
+
+# odoo-addons-parser
 
 Python package to collect data from Odoo module folders.
 
