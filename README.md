@@ -1,5 +1,6 @@
 [![Pre-commit Status](https://github.com/sebalix/odoo-addons-parser/actions/workflows/pre-commit.yml/badge.svg?branch=main)](https://github.com/sebalix/odoo-addons-parser/actions/workflows/pre-commit.yml?query=branch%3Amain)
 [![Tests Status](https://github.com/sebalix/odoo-addons-parser/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/sebalix/odoo-addons-parser/actions/workflows/test.yml?query=branch%3Amain)
+[![Last version](https://img.shields.io/pypi/v/odoo-addons-parser)](https://pypi.org/project/odoo-addons-parser/)
 
 # odoo-addons-parser
 
