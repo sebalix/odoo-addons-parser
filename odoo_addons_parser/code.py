@@ -95,7 +95,9 @@ class OdooModel:
     def __init__(self, pyfile: PyFile, ast_cls: ast.ClassDef):
         self.pyfile = pyfile
         assert self.is_model(ast_cls) or self.is_base_class(ast_cls)
-        self.file_path = self.pyfile.path.relative_to(self.pyfile.module_path)
+        self.file_path = self.pyfile.path
+        if self.pyfile.module_path:
+            self.file_path = self.file_path.relative_to(self.pyfile.module_path)
         self.class_name = ast_cls.name
         self.type_ = self._get_type(ast_cls)
         self.name = self._get_attr_value(ast_cls, "_name")
