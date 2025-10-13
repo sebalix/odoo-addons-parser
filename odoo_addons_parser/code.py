@@ -1,5 +1,5 @@
-# Copyright 2025 Camptocamp SA
-# License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl)
+# Copyright 2023 Sebastien Alix <https://github.com/sebalix>
+# License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
 """Parse Python module files and extract Odoo data models from them."""
 
 import ast
