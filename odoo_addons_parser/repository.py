@@ -16,12 +16,14 @@ class RepositoryParser:
         languages: tuple[str, ...] = ("Python", "XML", "CSS", "JavaScript"),
         name: typing.Optional[str] = None,
         workers: int = 0,
+        code_stats: bool = True,
         scan_models: bool = True,
     ):
         self.folder_path = pathlib.Path(folder_path).resolve()
         self.languages = languages
         self.name = self.folder_path.name if name is None else name
         self.workers = workers
+        self._code_stats = code_stats
         self._scan_models = scan_models
 
     @property
@@ -36,6 +38,7 @@ class RepositoryParser:
             module_path,
             languages=self.languages,
             repo_parser=self,
+            code_stats=self._code_stats,
             scan_models=self._scan_models,
         )
         return parser.to_dict()

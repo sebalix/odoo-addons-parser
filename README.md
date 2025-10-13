@@ -91,3 +91,11 @@ pp(repo.to_dict())
                      'name': 'mail_environment'},
 [...]
 ```
+
+Code stats or models scanning can be disabled thanks to `code_stats` and
+`scan_models` parameters, available on both classes:
+
+```python
+repo = RepositoryParser("path/to/addons_path", code_stats=False)
+mod = ModuleParser("path/to/addons_path/module", scan_models=False)
+```
