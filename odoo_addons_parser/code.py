@@ -214,7 +214,7 @@ class OdooModel:
 
     def to_dict(self) -> dict:
         data = {
-            "file_path": self.file_path,
+            "file_path": str(self.file_path),
             "class_name": self.class_name,
             "type": self.type_,
         }

@@ -38,7 +38,7 @@ class CommonCase(unittest.TestCase):
         }
         cls.module_models = {
             "res.partner": {
-                "file_path": pathlib.Path("models/res_partner.py"),
+                "file_path": "models/res_partner.py",
                 "class_name": "ResPartner",
                 "fields": {
                     "computed_field": {
