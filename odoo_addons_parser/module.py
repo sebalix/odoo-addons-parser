@@ -23,13 +23,16 @@ class ModuleParser:
         folder_path: typing.Union[str, os.PathLike],
         languages: tuple = ("Python", "XML", "CSS", "JavaScript"),
         repo_parser: typing.Optional["RepositoryParser"] = None,
+        code_stats: bool = True,
         scan_models: bool = True,
     ):
         self.folder_path = pathlib.Path(folder_path).resolve()
         self.languages = languages
         self.repo_parser = repo_parser
+        self._code_stats = code_stats
         self._scan_models = scan_models
         self.summary = pygount.ProjectSummary()
+        self.code = {}
         self.models = {}
         self._run()
 
@@ -65,11 +68,20 @@ class ModuleParser:
 
     def _run(self):
         for file_path in self.file_paths:
-            self._code_stats(file_path)
+            if self._code_stats:
+                self._run_code_stats(file_path)
             if self._scan_models:
-                self._scan_models_from_file(file_path)
+                self._run_scan_models(file_path)
+        if self._code_stats:
+            summaries = dict.fromkeys(self.languages, 0)
+            for summary in self.summary.language_to_language_summary_map.values():
+                for language in self.languages:
+                    if not summary.language.startswith(language):
+                        continue
+                    summaries[language] += summary.code_count
+            self.code = summaries
 
-    def _code_stats(self, file_path: os.PathLike):
+    def _run_code_stats(self, file_path: os.PathLike):
         try:
             source_analysis = pygount.SourceAnalysis.from_file(
                 file_path,
@@ -83,7 +95,7 @@ class ModuleParser:
         else:
             self.summary.add(source_analysis)
 
-    def _scan_models_from_file(self, file_path: os.PathLike):
+    def _run_scan_models(self, file_path: os.PathLike):
         try:
             pyfile = PyFile(file_path, module_path=self.folder_path)
         except ValueError:
@@ -103,17 +115,12 @@ class ModuleParser:
                     self.models[key].setdefault("methods", {}).update(model["methods"])
 
     def to_dict(self) -> dict:
-        summaries = dict.fromkeys(self.languages, 0)
         data = {
             "name": self.name,
-            "code": summaries,
             "manifest": self.manifest,
         }
+        if self._code_stats:
+            data["code"] = self.code
         if self._scan_models:
             data["models"] = self.models
-        for summary in self.summary.language_to_language_summary_map.values():
-            for language in self.languages:
-                if not summary.language.startswith(language):
-                    continue
-                summaries[language] += summary.code_count
         return data

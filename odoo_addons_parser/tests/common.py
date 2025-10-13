@@ -89,5 +89,5 @@ class CommonCase(unittest.TestCase):
         return ModuleParser(cls.module_path, **kw)
 
     @classmethod
-    def _run_repo_parser(cls):
-        return RepositoryParser(cls.repo_path)
+    def _run_repo_parser(cls, **kw):
+        return RepositoryParser(cls.repo_path, **kw)
