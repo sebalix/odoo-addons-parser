@@ -2,9 +2,16 @@ name: tests
 
 on: [pull_request, push]
 
+env:
+  # Tests of OdooParser require Odoo sources to run.
+  # As it could be time and resources consuming, we'll put in cache the
+  # downloaded sources. GitHub Actions will reset the cache once a week.
+  TEST_ODOO_PARSER: true
+  ODOO_DOWNLOAD_DIR_PATH: $GITHUB_WORKSPACE/odoo_download_src
+
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -16,5 +23,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: pip install .[test]
+      - name: Create odoo-src-cache
+        run: |
+          mkdir -p ${{ env.ODOO_DOWNLOAD_DIR_PATH }}
+      - name: Cache Odoo CE tarballs
+        id: cache-odoo-src
+        uses: actions/cache@v4
+        with:
+          key: cache-odoo-src
+          path: ${{ env.ODOO_DOWNLOAD_DIR_PATH }}
       - name: Run tests
         run: coverage run -m pytest -v odoo_addons_parser/tests && coverage report -m
