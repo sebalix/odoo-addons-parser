@@ -326,15 +326,21 @@ class OdooMethod:
     @classmethod
     def _extract_method_signature(cls, ast_cls: ast.FunctionDef) -> tuple[str, ...]:
         assert isinstance(ast_cls, ast.FunctionDef)
+        # Positional arguments
         args = [arg.arg for arg in ast_cls.args.args]
+        posonly_args = [arg.arg for arg in ast_cls.args.posonlyargs]
+        # Defaults
         defaults = []
         for default in ast_cls.args.defaults:
             defaults.append(ast_to_string(default))
-        signature = args[:]
+        signature = args[:] + posonly_args[:]
         defaults.reverse()
         for i, default in enumerate(defaults):
             arg = signature[-i - 1]
             signature[-i - 1] = f"{arg}={default}"
+        # Kwarg (**)
+        if ast_cls.args.kwarg:
+            signature.append(f"**{ast_cls.args.kwarg.arg}")
         return tuple(signature)
 
     def to_dict(self) -> dict:
