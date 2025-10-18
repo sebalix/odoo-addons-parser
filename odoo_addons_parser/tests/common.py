@@ -21,7 +21,7 @@ class CommonCase(unittest.TestCase):
         cls.module_code_stats = {
             "CSS": 0,
             "JavaScript": 0,
-            "Python": 18,
+            "Python": 19,
             "XML": 14,
         }
         cls.module_manifest = {
@@ -58,8 +58,8 @@ class CommonCase(unittest.TestCase):
                     "new_custom_field": {
                         "name": "new_custom_field",
                         "type": "Char",
-                        "lineno": 27,
-                        "end_lineno": 27,
+                        "lineno": 30,
+                        "end_lineno": 30,
                         "code": "    new_custom_field = fields.Char()\n",
                     },
                 },
@@ -72,7 +72,14 @@ class CommonCase(unittest.TestCase):
                         "lineno": 18,
                         "end_lineno": 20,
                         "code": "    def _compute_computed_field(self):\n        for rec in self:\n            rec.computed_field = rec.customer_field\n",
-                    }
+                    },
+                    "action_custom": {
+                        "name": "action_custom",
+                        "signature": ("self", "data", "**kwargs"),
+                        "lineno": 22,
+                        "end_lineno": 23,
+                        "code": "    def action_custom(self, data, **kwargs):\n        pass\n",
+                    },
                 },
                 "type": "Model",
             }

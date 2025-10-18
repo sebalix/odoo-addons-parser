@@ -19,6 +19,9 @@ class ResPartner(models.Model):
         for rec in self:
             rec.computed_field = rec.customer_field
 
+    def action_custom(self, data, **kwargs):
+        pass
+
 
 # Test corner case: declare the class twice in same Python file
 class ResPartner(models.Model):  # noqa: F811
