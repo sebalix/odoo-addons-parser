@@ -8,12 +8,14 @@ Python package to collect data from Odoo module folders.
 
 Features:
 
-- scan a folder of modules (repository) or a module only
+- scan an Odoo repository, a folder of modules (repository) or a module only
 - count the number of lines of code (Python, XML, JavaScript and CSS by default)
 - read the manifest file (to get useful data like authors or dependencies)
 - extract Odoo models info (fields, methods...)
 
-Example with `ModuleParser` class:
+## ModuleParser class
+
+`ModuleParser` class aims to scan a module folder only:
 
 ```python
 from odoo_addons_parser import ModuleParser
@@ -41,7 +43,10 @@ pp(mod.to_dict())
  'name': 'server_environment',
 ```
 
-With `RepositoryParser` class:
+## RepositoryParser class
+
+`RepositoryParser` class aims to scan a whole repository of addons
+(also named *addons path*):
 
 ```python
 from odoo_addons_parser import RepositoryParser
@@ -92,10 +97,30 @@ pp(repo.to_dict())
 [...]
 ```
 
+## OdooParser class
+
+`OdooParser` special class aims to scan the Odoo source code repository
+(the one we clone from https://github.com/odoo/odoo). It'll parse the content
+of `./odoo/addons`, `./addons` and Odoo base classes such as `BaseModel`,
+`Model` and `TransientModel`:
+
+```python
+>>> from odoo_addons_parser import OdooParser
+>>> odoo = OdooParser("/path/to/odoo/odoo")
+>>> data = odoo.to_dict()
+>>> list(data["__odoo__"]["models"])
+["BaseModel", "Model", "TransientModel"]
+>>> "res.partner" in data["base"]["models"]
+True
+```
+
+## Parameters
+
 Code stats or models scanning can be disabled thanks to `code_stats` and
-`scan_models` parameters, available on both classes:
+`scan_models` parameters, available on all classes:
 
 ```python
 repo = RepositoryParser("path/to/addons_path", code_stats=False)
 mod = ModuleParser("path/to/addons_path/module", scan_models=False)
+odoo = OdooParser("path/to/odoo/odoo", code_stats=False)
 ```
