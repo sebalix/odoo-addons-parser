@@ -5,6 +5,7 @@
 import ast
 import pathlib
 import typing
+import xml.etree.ElementTree as ET
 
 BASE_CLASSES = [
     "AbstractModel",
@@ -40,6 +41,73 @@ FIELD_TYPES = [
     "Many2manyCustom",  # base_m2m_custom_field from OCA
 ]
 
+class XMLFile:
+    """XML module file.
+
+    Such file could contain Odoo xml definitions.
+    """
+
+    def __init__(self, path: pathlib.Path, module_path: pathlib.Path = None):
+        if not path.suffix == ".xml":
+            raise ValueError(f"{path} is not a XML file")
+        self.path = path
+        self.module_path = module_path
+        self.lines, self.xml_content = self._parse_file()
+        self.records = self._get_records()
+        self.templates = self._get_templates()
+        self.menuitems = self._get_menuitems()
+
+    def _parse_file(self):
+        try:
+            with open(self.path) as file_:
+                lines = file_.readlines()
+            return lines, ET.parse(self.path)
+        except Exception as exc:
+            raise RuntimeError(f"Unable to parse file {self.path}") from exc
+
+    def _get_records(self) -> dict:
+        res = {}
+        for record in self.xml_content.findall('.//record'):
+            res.setdefault(record.attrib.get('model'), [])
+            data = {
+                'id': record.attrib.get('id'),
+            }
+            if model := record.findall("field[@name='model']"):
+                data['model'] = model[0].text
+            if name := record.findall("field[@name='name']"):
+                data['name'] = name[0].text
+            if key := record.findall("field[@name='key']"):
+                data['key'] = key[0].text
+            if inherit_id := record.findall("field[@name='inherit_id']"):
+                data['inherit_id'] = inherit_id[0].attrib.get('ref')
+            if xpath := record.findall(".//*[@position]"):
+                data['xpath'] = len(xpath)
+            res[record.attrib.get('model')].append(data)
+        return res
+
+    def _get_templates(self) -> dict:
+        res = {}
+        for record in self.xml_content.findall('.//template'):
+            data = {att: record.attrib.get(att) for att in ('id', 'inherit_id', 'name', 'primary') if
+             record.attrib.get(att)}
+            if xpath := record.findall(".//*[@position]"):
+                data['xpath'] = len(xpath)
+            res[record.attrib.get('id')] = data
+        return res
+
+    def _get_menuitems(self) -> dict:
+        res = {}
+        for record in self.xml_content.findall('.//menuitem'):
+            data = {att: record.attrib.get(att) for att in ('id', 'name') if record.attrib.get(att)}
+            res[record.attrib.get('id')] = data
+        return res
+
+    def to_dict(self):
+        return {
+            "records": self.records,
+            "templates": self.templates,
+            "menuitems": self.menuitems,
+        }
 
 class PyFile:
     """Python module file.
@@ -234,6 +302,7 @@ class OdooField:
         assert self.is_field(ast_cls)
         self.name = ast_cls.targets[0].id
         self.type_ = self._extract_type(ast_cls)
+        self.relation = self._extract_relation(ast_cls)
         self.lineno, self.end_lineno = ast_cls.lineno, ast_cls.end_lineno
         self.code = "".join(self.pyfile.lines[self.lineno - 1 : self.end_lineno])
 
@@ -261,10 +330,30 @@ class OdooField:
         if field_type in FIELD_TYPES:
             return field_type
 
+    @classmethod
+    def _extract_relation(cls, ast_cls: ast.Assign) -> str:
+        relation = None
+
+        field_type = cls._extract_type(ast_cls)
+        if field_type not in ('Many2one', 'One2many', 'Many2many'):
+            return None
+
+        # Support e.g. "fields.Many2one('res.partner', ...)"
+        if ast_cls.value.args and isinstance(ast_cls.value.args[0], ast.Constant):
+            relation = ast_cls.value.args[0].value
+
+        # Support e.g. "fields.Many2one(comodel_name='res.partner', ...)"
+        for keyword in ast_cls.value.keywords:
+            if keyword.arg == 'comodel_name' and isinstance(keyword.value, ast.Constant):
+                relation = keyword.value.value
+
+        return relation
+
     def to_dict(self) -> dict:
         return {
             "name": self.name,
             "type": self.type_,
+            "relation": self.relation,
             "lineno": self.lineno,
             "end_lineno": self.end_lineno,
             "code": self.code,
