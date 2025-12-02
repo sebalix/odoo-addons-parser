@@ -7,6 +7,7 @@ import pathlib
 import typing
 import xml.etree.ElementTree as ET
 
+
 BASE_CLASSES = [
     "AbstractModel",
     "BaseModel",
@@ -81,7 +82,12 @@ class XMLFile:
             if inherit_id := record.findall("field[@name='inherit_id']"):
                 data['inherit_id'] = inherit_id[0].attrib.get('ref')
             if xpath := record.findall(".//*[@position]"):
-                data['xpath'] = len(xpath)
+                data.setdefault('xpath',{})
+                for x in xpath:
+                    position = x.attrib.get('position')
+                    data['xpath'].setdefault(position, 0)
+                    data['xpath'][position] += 1
+
             res[record.attrib.get('model')].append(data)
         return res
 
@@ -91,7 +97,11 @@ class XMLFile:
             data = {att: record.attrib.get(att) for att in ('id', 'inherit_id', 'name', 'primary') if
              record.attrib.get(att)}
             if xpath := record.findall(".//*[@position]"):
-                data['xpath'] = len(xpath)
+                data.setdefault('xpath',{})
+                for x in xpath:
+                    position = x.attrib.get('position')
+                    data['xpath'].setdefault(position, 0)
+                    data['xpath'][position] += 1
             res[record.attrib.get('id')] = data
         return res
 
