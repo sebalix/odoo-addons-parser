@@ -36,3 +36,6 @@ ENV/
 
 # Lint
 /.ruff_cache
+
+# Tests cache
+.odoo_download_dir_path/
