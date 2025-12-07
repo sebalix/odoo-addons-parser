@@ -3,9 +3,12 @@
 """Parse Python module files and extract Odoo data models from them."""
 
 import ast
+import logging
 import pathlib
 import typing
 import xml.etree.ElementTree as ET
+
+_logger = logging.getLogger(__name__)
 
 BASE_CLASSES = [
     "AbstractModel",
@@ -41,6 +44,7 @@ FIELD_TYPES = [
     "Many2manyCustom",  # base_m2m_custom_field from OCA
 ]
 
+
 class XMLFile:
     """XML module file.
 
@@ -63,43 +67,51 @@ class XMLFile:
                 lines = file_.readlines()
             return lines, ET.parse(self.path)
         except Exception as exc:
+            _logger.warning(str(exc))
             raise RuntimeError(f"Unable to parse file {self.path}") from exc
 
     def _get_records(self) -> dict:
         res = {}
-        for record in self.xml_content.findall('.//record'):
-            res.setdefault(record.attrib.get('model'), [])
+        for record in self.xml_content.findall(".//record"):
+            res.setdefault(record.attrib.get("model"), [])
             data = {
-                'id': record.attrib.get('id'),
+                "id": record.attrib.get("id"),
             }
             if model := record.findall("field[@name='model']"):
-                data['model'] = model[0].text
+                data["model"] = model[0].text
             if name := record.findall("field[@name='name']"):
-                data['name'] = name[0].text
+                data["name"] = name[0].text
             if key := record.findall("field[@name='key']"):
-                data['key'] = key[0].text
+                data["key"] = key[0].text
             if inherit_id := record.findall("field[@name='inherit_id']"):
-                data['inherit_id'] = inherit_id[0].attrib.get('ref')
+                data["inherit_id"] = inherit_id[0].attrib.get("ref")
             if xpath := record.findall(".//*[@position]"):
-                data['xpath'] = len(xpath)
-            res[record.attrib.get('model')].append(data)
+                data["xpath"] = len(xpath)
+            res[record.attrib.get("model")].append(data)
         return res
 
     def _get_templates(self) -> dict:
         res = {}
-        for record in self.xml_content.findall('.//template'):
-            data = {att: record.attrib.get(att) for att in ('id', 'inherit_id', 'name', 'primary') if
-             record.attrib.get(att)}
+        for record in self.xml_content.findall(".//template"):
+            data = {
+                att: record.attrib.get(att)
+                for att in ("id", "inherit_id", "name", "primary")
+                if record.attrib.get(att)
+            }
             if xpath := record.findall(".//*[@position]"):
-                data['xpath'] = len(xpath)
-            res[record.attrib.get('id')] = data
+                data["xpath"] = len(xpath)
+            res[record.attrib.get("id")] = data
         return res
 
     def _get_menuitems(self) -> dict:
         res = {}
-        for record in self.xml_content.findall('.//menuitem'):
-            data = {att: record.attrib.get(att) for att in ('id', 'name') if record.attrib.get(att)}
-            res[record.attrib.get('id')] = data
+        for record in self.xml_content.findall(".//menuitem"):
+            data = {
+                att: record.attrib.get(att)
+                for att in ("id", "name")
+                if record.attrib.get(att)
+            }
+            res[record.attrib.get("id")] = data
         return res
 
     def to_dict(self):
@@ -108,6 +120,7 @@ class XMLFile:
             "templates": self.templates,
             "menuitems": self.menuitems,
         }
+
 
 class PyFile:
     """Python module file.
@@ -257,6 +270,7 @@ class OdooModel:
             try:
                 field = OdooField(self.pyfile, elt)
             except Exception as exc:
+                _logger.warning(str(exc))
                 raise RuntimeError(
                     f"Unable to parse field {elt.name}:{elt.lineno} "
                     f"in file {self.pyfile.path}"
@@ -273,6 +287,7 @@ class OdooModel:
             try:
                 method = OdooMethod(self.pyfile, elt)
             except Exception as exc:
+                _logger.warning(str(exc))
                 raise RuntimeError(
                     f"Unable to parse method {elt.name}:{elt.lineno} "
                     f"in file {self.pyfile.path}"
@@ -335,7 +350,7 @@ class OdooField:
         relation = None
 
         field_type = cls._extract_type(ast_cls)
-        if field_type not in ('Many2one', 'One2many', 'Many2many'):
+        if field_type not in ("Many2one", "One2many", "Many2many"):
             return None
 
         # Support e.g. "fields.Many2one('res.partner', ...)"
@@ -344,20 +359,24 @@ class OdooField:
 
         # Support e.g. "fields.Many2one(comodel_name='res.partner', ...)"
         for keyword in ast_cls.value.keywords:
-            if keyword.arg == 'comodel_name' and isinstance(keyword.value, ast.Constant):
+            if keyword.arg == "comodel_name" and isinstance(
+                keyword.value, ast.Constant
+            ):
                 relation = keyword.value.value
 
         return relation
 
     def to_dict(self) -> dict:
-        return {
+        data = {
             "name": self.name,
             "type": self.type_,
-            "relation": self.relation,
             "lineno": self.lineno,
             "end_lineno": self.end_lineno,
             "code": self.code,
         }
+        if self.type_ in ("Many2one", "One2many", "Many2many"):
+            data["relation"] = self.relation
+        return data
 
 
 class OdooMethod:
