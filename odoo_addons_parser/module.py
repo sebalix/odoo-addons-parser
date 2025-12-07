@@ -80,14 +80,16 @@ class ModuleParser:
             if self._scan_xml:
                 self._run_scan_xml(file_path)
         if self._code_stats:
-            summaries = {lang:{'lines':0, 'files': 0, 'docs': 0} for lang in self.languages}
+            summaries = {
+                lang: {"lines": 0, "files": 0, "docs": 0} for lang in self.languages
+            }
             for summary in self.summary.language_to_language_summary_map.values():
                 for language in self.languages:
                     if not summary.language.startswith(language):
                         continue
-                    summaries[language]['lines'] += summary.code_count
-                    summaries[language]['files'] += summary.file_count
-                    summaries[language]['docs'] += summary.documentation_count
+                    summaries[language]["lines"] += summary.code_count
+                    summaries[language]["files"] += summary.file_count
+                    summaries[language]["docs"] += summary.documentation_count
             self.code = summaries
 
     def _run_code_stats(self, file_path: os.PathLike):
@@ -133,11 +135,11 @@ class ModuleParser:
             return
         data = xmlfile.to_dict()
         for model in data["records"].keys():
-            self.records.setdefault(model, []).extend(data['records'][model])
+            self.records.setdefault(model, []).extend(data["records"][model])
         for model in data["templates"].keys():
-            self.templates.setdefault(model, {}).update(data['templates'][model])
+            self.templates.setdefault(model, {}).update(data["templates"][model])
         for model in data["menuitems"].keys():
-            self.menuitems.setdefault(model, {}).update(data['menuitems'][model])
+            self.menuitems.setdefault(model, {}).update(data["menuitems"][model])
 
     def to_dict(self) -> dict:
         data = {
@@ -149,7 +151,9 @@ class ModuleParser:
         if self._scan_models:
             data["models"] = self.models
         if self._scan_xml:
-            data["records"] = self.records
-            data["templates"] = self.templates
-            data["menuitems"] = self.menuitems
+            data["data"] = {
+                "records": self.records,
+                "templates": self.templates,
+                "menuitems": self.menuitems,
+            }
         return data

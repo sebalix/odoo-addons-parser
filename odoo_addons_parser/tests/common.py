@@ -19,10 +19,10 @@ class CommonCase(unittest.TestCase):
         cls.module_name = "module_test"
         cls.module_path = cls.repo_path.joinpath(cls.module_name)
         cls.module_code_stats = {
-            "CSS": 0,
-            "JavaScript": 0,
-            "Python": 19,
-            "XML": 14,
+            "CSS": {"lines": 0, "files": 0, "docs": 0},
+            "JavaScript": {"lines": 0, "files": 0, "docs": 0},
+            "Python": {"lines": 19, "files": 2, "docs": 5},
+            "XML": {"lines": 14, "files": 1, "docs": 2},
         }
         cls.module_manifest = {
             "author": "Camptocamp, Odoo Community Association (OCA)",
@@ -84,11 +84,27 @@ class CommonCase(unittest.TestCase):
                 "type": "Model",
             }
         }
+        cls.module_data = {
+            "records": {
+                "ir.ui.view": [
+                    {
+                        "id": "res_partner_form_view",
+                        "inherit_id": "base.res_partner_form_view",
+                        "model": "res.partner",
+                        "name": "res.partner.form.inherit",
+                        "xpath": 1,
+                    }
+                ]
+            },
+            "templates": {},
+            "menuitems": {},
+        }
         cls.module_to_dict = {
             "name": cls.module_name,
             "code": cls.module_code_stats,
             "manifest": cls.module_manifest,
             "models": cls.module_models,
+            "data": cls.module_data,
         }
 
     @classmethod
