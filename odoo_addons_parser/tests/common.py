@@ -21,7 +21,7 @@ class CommonCase(unittest.TestCase):
         cls.module_code_stats = {
             "CSS": 0,
             "JavaScript": 0,
-            "Python": 19,
+            "Python": 23,
             "XML": 14,
         }
         cls.module_manifest = {
@@ -82,7 +82,14 @@ class CommonCase(unittest.TestCase):
                     },
                 },
                 "type": "Model",
-            }
+            },
+            "res.users": {
+                "file_path": "models/res_users.py",
+                "class_name": "ResUsers",
+                "name": "res.users",
+                "inherit": ["res.users", "test"],
+                "type": "Model",
+            },
         }
         cls.module_to_dict = {
             "name": cls.module_name,

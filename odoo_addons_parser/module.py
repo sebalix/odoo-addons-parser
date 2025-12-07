@@ -106,6 +106,11 @@ class ModuleParser:
         data = pyfile.to_dict()
         for model in data["models"].values():
             key = model.get("name") or model.get("inherit")
+            if isinstance(key, list):
+                # Data model declared without `_name` but with `_inherit = [...]`,
+                # e.g. `_inherit = ['res.partner']`, considers - like Odoo - first
+                # element as current model name
+                key = key[0]
             if key not in self.models:
                 self.models.setdefault(key, {}).update(model)
             else:
