@@ -118,6 +118,13 @@ class ModuleParser:
                     self.models[key].setdefault("fields", {}).update(model["fields"])
                 if model.get("methods"):
                     self.models[key].setdefault("methods", {}).update(model["methods"])
+                # Handle cases where more than one file declare the same data model
+                # in current scanned module, and one of them is the original
+                # declaration w/o inheritance).
+                #   => Consider the data model as original/new for current module.
+                if model.get("name") == key and self.models[key].get("inherit") == key:
+                    self.models[key]["name"] = key
+                    del self.models[key]["inherit"]
 
     def to_dict(self) -> dict:
         data = {
