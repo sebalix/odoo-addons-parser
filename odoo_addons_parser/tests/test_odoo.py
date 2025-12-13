@@ -67,3 +67,11 @@ class TestOdoo(common.CommonCase):
             self.assertIn("Model", framework_models)
             self.assertIn("TransientModel", framework_models)
             self.assertIn("res.partner", list(data["base"]["models"]))
+            # 'res.partner' and 'res.users' are declared several times in 'base'
+            # module (one with '_name' and another ones with '_inherit'), but it's
+            # not considered as inherited at the module level (ignoring any use
+            # of '_inherit')
+            for model in ("res.partner", "res.users"):
+                record = data["base"]["models"][model]
+                self.assertTrue(record["name"], model)
+                self.assertFalse(record["inherit"])
