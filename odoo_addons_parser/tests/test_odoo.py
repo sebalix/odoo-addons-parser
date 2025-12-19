@@ -81,3 +81,19 @@ class TestOdoo(common.CommonCase):
             self.assertNotIn("name", sale_res_partner)
             self.assertIn("inherit", sale_res_partner)
             self.assertIn("res.partner", sale_res_partner["inherit"])
+
+    def test_to_dict_merge_base_models_into_base_module(self):
+        version = ODOO_VERSIONS[-1]
+        folder_path = self.download_path.joinpath(f"odoo-{version}")
+        # Disable code_stats to make tests faster
+        # + collect BaseModel, Model, TransientModel into 'base' module
+        parser = OdooParser(folder_path, code_stats=False, base_models_key="base")
+        data = parser.to_dict()
+        self.assertNotIn("__odoo__", data)
+        self.assertIn("base", data)
+        models = list(data["base"]["models"])
+        self.assertIn("BaseModel", models)
+        self.assertIn("Model", models)
+        self.assertIn("TransientModel", models)
+        self.assertIn("res.partner", models)
+        self.assertIn("base", models)

@@ -25,11 +25,13 @@ class OdooParser:
 
     It takes as input the path of the main Odoo source code repository,
     and will take care of parsing the different addons paths in it
-    (`./odoo/addons/` and `./addons/` by default) and the special
-    `odoo/models.py` file containing the base data models.
+    (`./odoo/addons/` and `./addons/` by default) and the special ORM files
+    containing the base data models (BaseModel, Model and TransientModel).
 
-    The data from `odoo/models.py` will be available under the fake
-    module name `__odoo__`.
+    The ORM data will be available under the fake module name `__odoo__`
+    by default. This can be changed with `base_models_key` parameter.
+    In case `base_models_key` is set with an existing module name (e.g. `base`)
+    the ORM data will be merged into that one.
 
     E.g:
         >>> data = OdooParser("./odoo/odoo", code_stats=False).to_dict()
@@ -52,6 +54,7 @@ class OdooParser:
             ODOO_ADDONS_PATH,
         ),
         base_models_paths: tuple[os.PathLike, ...] = ODOO_BASE_MODELS_PATHS,
+        base_models_key: str = "__odoo__",
     ):
         self.folder_path = pathlib.Path(folder_path).resolve()
         self.languages = languages
@@ -65,6 +68,7 @@ class OdooParser:
             # Keep only existing base models file paths
             if self.folder_path.joinpath(base_models_path).exists():
                 self._base_models_paths.append(pathlib.Path(base_models_path))
+        self._base_models_key = base_models_key
         self.base_models = []
         self.repositories = []
         self._run()
@@ -97,16 +101,29 @@ class OdooParser:
         # Base models
         for base_models in self.base_models:
             # Put these data in a special module name '__odoo__'
-            data.setdefault("__odoo__", {})
+            data.setdefault(self._base_models_key, {})
             base_data = base_models.to_dict()
             for key in base_data.keys():
                 # All values are dicts, so we can merge them
-                # NOTE: only key available if 'models' currently
-                if key in data["__odoo__"]:
-                    data["__odoo__"][key].update(base_data[key])
+                # NOTE: only available key is 'models' currently
+                if key in data[self._base_models_key]:
+                    data[self._base_models_key][key].update(base_data[key])
                 else:
-                    data["__odoo__"][key] = base_data[key]
+                    data[self._base_models_key][key] = base_data[key]
         # Addons paths
         for repo in self.repositories:
-            data.update(repo.to_dict())
+            repo_data = repo.to_dict()
+            # In case 'base_models_key' was set with an existing module name
+            # we need to merge both dataset
+            for module_name, module_data in repo_data.items():
+                data.setdefault(module_name, {})
+                # NOTE: only key to merge is 'models' currently
+                for key in module_data:
+                    if key == "models":
+                        data[module_name].setdefault(key, {})
+                        data[module_name][key].update(module_data[key])
+                        continue
+                    data[module_name][key] = module_data[key]
+            else:
+                data[module_name] = module_data
         return data
