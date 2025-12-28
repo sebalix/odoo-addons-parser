@@ -230,7 +230,7 @@ class OdooModel:
         }
         if self.auto is not None:
             data["auto"] = self.auto
-        for attr in ("name", "inherit", "inherits", "fields", "methods"):
+        for attr in ("name", "inherit", "inherits", "fields", "methods", "order"):
             if getattr(self, attr):
                 data[attr] = getattr(self, attr)
         return data
