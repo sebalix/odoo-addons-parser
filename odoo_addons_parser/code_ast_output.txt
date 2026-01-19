@@ -1,0 +1,379 @@
+###############
+__manifest__.py
+###############
+
+[module] ...
+	[comment] # Copyright 2025 Sebastien Alix <https://github.com/sebalix>
+	[comment] # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
+	[expression_statement] ...
+		[dictionary] ...
+			[{] {
+			[pair] "name": "Test"
+				[string] "name"
+					[string_start] "
+					[string_content] name
+					[string_end] "
+				[:] :
+				[string] "Test"
+					[string_start] "
+					[string_content] Test
+					[string_end] "
+			[,] ,
+			[pair] "version": "1.0.0"
+				[string] "version"
+					[string_start] "
+					[string_content] version
+					[string_end] "
+				[:] :
+				[string] "1.0.0"
+					[string_start] "
+					[string_content] 1.0.0
+					[string_end] "
+			[,] ,
+			[pair] "category": "Test Module"
+				[string] "category"
+					[string_start] "
+					[string_content] category
+					[string_end] "
+				[:] :
+				[string] "Test Module"
+					[string_start] "
+					[string_content] Test Module
+					[string_end] "
+			[,] ,
+			[pair] "author": "Camptocamp, Odoo Community Association (OCA)"
+				[string] "author"
+					[string_start] "
+					[string_content] author
+					[string_end] "
+				[:] :
+				[string] "Camptocamp, Odoo Community Association (OCA)"
+					[string_start] "
+					[string_content] Camptocamp, Odoo Community Association (OCA)
+					[string_end] "
+			[,] ,
+			[pair] "website": "https://example.com/odoo-addons-parser"
+				[string] "website"
+					[string_start] "
+					[string_content] website
+					[string_end] "
+				[:] :
+				[string] "https://example.com/odoo-addons-parser"
+					[string_start] "
+					[string_content] https://example.com/odoo-addons-parser
+					[string_end] "
+			[,] ,
+			[pair] "license": "AGPL-3"
+				[string] "license"
+					[string_start] "
+					[string_content] license
+					[string_end] "
+				[:] :
+				[string] "AGPL-3"
+					[string_start] "
+					[string_content] AGPL-3
+					[string_end] "
+			[,] ,
+			[pair] "depends": ["base"]
+				[string] "depends"
+					[string_start] "
+					[string_content] depends
+					[string_end] "
+				[:] :
+				[list] ...
+					[[] [
+					[string] "base"
+						[string_start] "
+						[string_content] base
+						[string_end] "
+					[]] ]
+			[,] ,
+			[pair] "data": ["views/res_partner.xml"]
+				[string] "data"
+					[string_start] "
+					[string_content] data
+					[string_end] "
+				[:] :
+				[list] ...
+					[[] [
+					[string] "views/res_partner.xml"
+						[string_start] "
+						[string_content] views/res_partner.xml
+						[string_end] "
+					[]] ]
+			[,] ,
+			[pair] "demo": []
+				[string] "demo"
+					[string_start] "
+					[string_content] demo
+					[string_end] "
+				[:] :
+				[list] ...
+					[[] [
+					[]] ]
+			[,] ,
+			[pair] "installable": True
+				[string] "installable"
+					[string_start] "
+					[string_content] installable
+					[string_end] "
+				[:] :
+				[true] True
+			[,] ,
+			[}] }
+
+#####################
+models/res_partner.py
+#####################
+
+[module] ...
+	[comment] # Copyright 2025 Sebastien Alix <https://github.com/sebalix>
+	[comment] # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
+	[import_from_statement] ...
+		[from] from
+		[dotted_name] odoo
+			[identifier] odoo
+		[import] import
+		[dotted_name] api
+			[identifier] api
+		[,] ,
+		[dotted_name] fields
+			[identifier] fields
+		[,] ,
+		[dotted_name] models
+			[identifier] models
+	[class_definition] ...
+		[class] class
+		[identifier] ResPartner
+		[argument_list] ...
+			[(] (
+			[attribute] models.Model
+				[identifier] models
+				[.] .
+				[identifier] Model
+			[)] )
+		[:] :
+		[block] ...
+			[expression_statement] ...
+				[assignment] ...
+					[identifier] _inherit
+					[=] =
+					[string] "res.partner"
+						[string_start] "
+						[string_content] res.partner
+						[string_end] "
+			[expression_statement] ...
+				[assignment] ...
+					[identifier] custom_field
+					[=] =
+					[call] ...
+						[attribute] fields.Char
+							[identifier] fields
+							[.] .
+							[identifier] Char
+						[argument_list] ...
+							[(] (
+							[keyword_argument] ...
+								[identifier] required
+								[=] =
+								[true] True
+							[,] ,
+							[keyword_argument] ...
+								[identifier] default
+								[=] =
+								[string] "Test"
+									[string_start] "
+									[string_content] Test
+									[string_end] "
+							[)] )
+			[expression_statement] ...
+				[assignment] ...
+					[identifier] computed_field
+					[=] =
+					[call] ...
+						[attribute] fields.Char
+							[identifier] fields
+							[.] .
+							[identifier] Char
+						[argument_list] ...
+							[(] (
+							[keyword_argument] ...
+								[identifier] compute
+								[=] =
+								[string] "_compute_computed_field"
+									[string_start] "
+									[string_content] _compute_computed_field
+									[string_end] "
+							[,] ,
+							[keyword_argument] ...
+								[identifier] readonly
+								[=] =
+								[false] False
+							[,] ,
+							[keyword_argument] ...
+								[identifier] store
+								[=] =
+								[true] True
+							[,] ,
+							[)] )
+			[decorated_definition] ...
+				[decorator] @api.depends("custom_field")
+					[@] @
+					[call] ...
+						[attribute] api.depends
+							[identifier] api
+							[.] .
+							[identifier] depends
+						[argument_list] ...
+							[(] (
+							[string] "custom_field"
+								[string_start] "
+								[string_content] custom_field
+								[string_end] "
+							[)] )
+				[function_definition] ...
+					[def] def
+					[identifier] _compute_computed_field
+					[parameters] (self)
+						[(] (
+						[identifier] self
+						[)] )
+					[:] :
+					[block] ...
+						[for_statement] ...
+							[for] for
+							[identifier] rec
+							[in] in
+							[identifier] self
+							[:] :
+							[block] ...
+								[expression_statement] ...
+									[assignment] ...
+										[attribute] rec.computed_field
+											[identifier] rec
+											[.] .
+											[identifier] computed_field
+										[=] =
+										[attribute] rec.customer_field
+											[identifier] rec
+											[.] .
+											[identifier] customer_field
+			[function_definition] ...
+				[def] def
+				[identifier] action_custom
+				[parameters] (self, data, **kwargs)
+					[(] (
+					[identifier] self
+					[,] ,
+					[identifier] data
+					[,] ,
+					[dictionary_splat_pattern] **kwargs
+						[**] **
+						[identifier] kwargs
+					[)] )
+				[:] :
+				[block] ...
+					[pass_statement] pass
+						[pass] pass
+	[comment] # Test corner case: declare the class twice in same Python file
+	[class_definition] ...
+		[class] class
+		[identifier] ResPartner
+		[argument_list] ...
+			[(] (
+			[attribute] models.Model
+				[identifier] models
+				[.] .
+				[identifier] Model
+			[)] )
+		[:] :
+		[comment] # noqa: F811
+		[block] ...
+			[expression_statement] ...
+				[assignment] ...
+					[identifier] _inherit
+					[=] =
+					[string] "res.partner"
+						[string_start] "
+						[string_content] res.partner
+						[string_end] "
+			[expression_statement] ...
+				[assignment] ...
+					[identifier] new_custom_field
+					[=] =
+					[call] ...
+						[attribute] fields.Char
+							[identifier] fields
+							[.] .
+							[identifier] Char
+						[argument_list] ...
+							[(] (
+							[)] )
+			[expression_statement] ...
+				[assignment] ...
+					[identifier] _test_attr
+					[=] =
+					[dictionary] ...
+						[{] {
+						[}] }
+			[expression_statement] ...
+				[assignment] ...
+					[subscript] _test_attr["test"]
+						[identifier] _test_attr
+						[[] [
+						[string] "test"
+							[string_start] "
+							[string_content] test
+							[string_end] "
+						[]] ]
+					[=] =
+					[true] True
+
+###################
+models/res_users.py
+###################
+
+[module] ...
+	[comment] # Copyright 2025 Sebastien Alix <https://github.com/sebalix>
+	[comment] # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
+	[import_from_statement] ...
+		[from] from
+		[dotted_name] odoo
+			[identifier] odoo
+		[import] import
+		[dotted_name] models
+			[identifier] models
+	[comment] # Test corner case: inherit declared as a list + ref to cls variable
+	[class_definition] ...
+		[class] class
+		[identifier] ResUsers
+		[argument_list] ...
+			[(] (
+			[attribute] models.Model
+				[identifier] models
+				[.] .
+				[identifier] Model
+			[)] )
+		[:] :
+		[block] ...
+			[expression_statement] ...
+				[assignment] ...
+					[identifier] _name
+					[=] =
+					[string] "res.users"
+						[string_start] "
+						[string_content] res.users
+						[string_end] "
+			[expression_statement] ...
+				[assignment] ...
+					[identifier] _inherit
+					[=] =
+					[list] ...
+						[[] [
+						[identifier] _name
+						[,] ,
+						[string] "test"
+							[string_start] "
+							[string_content] test
+							[string_end] "
+						[]] ]

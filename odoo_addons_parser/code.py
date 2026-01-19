@@ -6,6 +6,10 @@ import ast
 import pathlib
 import typing
 
+import code_ast
+
+from .pyast import PyFileVisitor
+
 BASE_CLASSES = [
     "AbstractModel",
     "BaseModel",
@@ -53,37 +57,38 @@ class PyFile:
         self.path = path
         self.module_path = module_path
         self.lines, self.ast_content = self._parse_file()
-        self.models = self._get_models()
+        self.models = {}
+        visitor = PyFileVisitor(self)
+        self.ast_content.visit(visitor)
+        # == FIXME remove ==
+        print()
+        print("#" * len(str(path.relative_to(module_path))))
+        print(path.relative_to(module_path))
+        print("#" * len(str(path.relative_to(module_path))))
+        print()
+        from pprint import pprint as pp
+
+        pp(visitor.data)
+        # ==================
+        self._insert_collected_data(visitor.data)
 
     def _parse_file(self):
         try:
             with open(self.path) as file_:
                 lines = file_.readlines()
                 content = "".join(lines)
-                return lines, ast.parse(content)
+                source_ast = code_ast.ast(content, lang="python")
+                return lines, source_ast
+        except ValueError as exc:
+            if self.path.name == "__init__py":
+                return
+            raise exc
         except Exception as exc:
             raise RuntimeError(f"Unable to parse file {self.path}") from exc
 
-    def _get_models(self) -> dict:
-        models = {}
-        for elt in self.ast_content.body:
-            try:
-                if isinstance(elt, ast.ClassDef) and OdooModel.is_model(elt):
-                    model = OdooModel(self, elt)
-                    # Support corner case where the same data model is
-                    # declared/inherited multiple times in the same file
-                    # (each of them will add a new model definition entry).
-                    key = f"{self.path}:{elt.name};{elt.lineno}"
-                    models[key] = model.to_dict()
-                elif isinstance(elt, ast.ClassDef) and OdooModel.is_base_class(elt):
-                    model = OdooModel(self, elt)
-                    models[elt.name] = model.to_dict()
-            except Exception as exc:
-                raise RuntimeError(
-                    f"Unable to parse class {elt.name}:{elt.lineno} "
-                    f"in file {self.path}"
-                ) from exc
-        return models
+    def _insert_collected_data(self, data):
+        for model_key, model_data in data["models"].items():
+            self.models[model_key] = model_data
 
     def to_dict(self):
         return {"models": self.models}

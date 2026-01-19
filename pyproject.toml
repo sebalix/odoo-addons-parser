@@ -12,6 +12,8 @@ classifiers = [
 ]
 dependencies = [
     "pygount<1.7.0",
+    "code-ast",
+    "tree-sitter-python",
 ]
 requires-python = ">=3.9"
 dynamic = ["version"]

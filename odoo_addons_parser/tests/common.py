@@ -40,30 +40,40 @@ class CommonCase(unittest.TestCase):
             "res.partner": {
                 "file_path": "models/res_partner.py",
                 "class_name": "ResPartner",
+                "lineno": 9,
+                "end_lineno": 28,
+                "inherit": "res.partner",
+                "order": "custom_field",
                 "fields": {
                     "computed_field": {
                         "name": "computed_field",
                         "type": "Char",
-                        "lineno": 11,
-                        "end_lineno": 15,
+                        "lineno": 14,
+                        "end_lineno": 18,
                         "code": '    computed_field = fields.Char(\n        compute="_compute_computed_field",\n        readonly=False,\n        store=True,\n    )\n',
                     },
                     "custom_field": {
                         "name": "custom_field",
                         "type": "Char",
-                        "lineno": 10,
-                        "end_lineno": 10,
+                        "lineno": 13,
+                        "end_lineno": 13,
                         "code": '    custom_field = fields.Char(required=True, default="Test")\n',
+                    },
+                    "good_customer": {
+                        "name": "good_customer",
+                        "type": "Boolean",
+                        "lineno": 19,
+                        "end_lineno": 19,
+                        "code": "",
                     },
                     "new_custom_field": {
                         "name": "new_custom_field",
                         "type": "Char",
-                        "lineno": 30,
-                        "end_lineno": 30,
+                        "lineno": 35,
+                        "end_lineno": 35,
                         "code": "    new_custom_field = fields.Char()\n",
                     },
                 },
-                "inherit": "res.partner",
                 "methods": {
                     "_compute_computed_field": {
                         "decorators": ("api.depends('custom_field')",),
@@ -86,6 +96,8 @@ class CommonCase(unittest.TestCase):
             "res.users": {
                 "file_path": "models/res_users.py",
                 "class_name": "ResUsers",
+                "lineno": 7,
+                "end_lineno": 9,
                 "name": "res.users",
                 "inherit": ["res.users", "test"],
                 "type": "Model",
