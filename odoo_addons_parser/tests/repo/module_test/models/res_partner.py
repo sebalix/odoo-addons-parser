@@ -2,12 +2,13 @@
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
 
 from odoo import api, fields, models
+from odoo.models import Model
 from odoo.fields import Boolean
 
 from odoo.addons import x
 
 
-class ResPartner(models.Model):
+class ResPartner(Model):
     _inherit = "res.partner"
     _order = "custom_field"
 
