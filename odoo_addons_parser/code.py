@@ -132,7 +132,8 @@ class OdooModel:
         bases = ts_utils.get_class_bases(class_node)
         class_name = ts_utils.get_class_name(class_node)
 
-        if class_name == "BaseModel" and not bases:
+        # Check "object" in bases for Python 2 compatibility (old Odoo versions)
+        if class_name == "BaseModel" and (not bases or "object" in bases):
             return True
         if class_name in BASE_CLASSES and set(bases) & set(BASE_CLASSES):
             return True
