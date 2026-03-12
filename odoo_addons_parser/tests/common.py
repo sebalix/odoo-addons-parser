@@ -22,12 +22,16 @@ class CommonCase(unittest.TestCase):
             "CSS": 0,
             "JavaScript": 0,
             "Python": 42,
-            "XML": 14,
+            "XML": 59,
         }
         cls.module_manifest = {
             "author": "Camptocamp, Odoo Community Association (OCA)",
             "category": "Test Module",
-            "data": ["views/res_partner.xml"],
+            "data": [
+                "views/res_partner.xml",
+                "reports/reports.xml",
+                "reports/templates.xml",
+            ],
             "demo": [],
             "depends": ["base"],
             "installable": True,
@@ -153,11 +157,78 @@ class CommonCase(unittest.TestCase):
                 "type": "Model",
             },
         }
+        cls.module_data = {
+            "ir.ui.view": [
+                {
+                    "id": "res_partner_form_view",
+                    "model": "ir.ui.view",
+                    "type": "normal",
+                    "target_model": "res.partner",
+                    "name": "res.partner.form.inherit",
+                    "file_path": "views/res_partner.xml",
+                    "data": {
+                        "model": "res.partner",
+                        "inherit_id": "base.res_partner_form_view",
+                        "arch": '\n            <field name="name" position="after">\n                <field name="custom_field" />\n                <field name="computed_field" />\n            </field>\n        ',
+                        "name": "res.partner.form.inherit",
+                    },
+                },
+                {
+                    "id": "res_partner_tree_view",
+                    "model": "ir.ui.view",
+                    "type": "normal",
+                    "target_model": "res.partner",
+                    "name": "res.partner.tree",
+                    "file_path": "views/res_partner.xml",
+                    "data": {
+                        "model": "res.partner",
+                        "arch": '\n            <tree>\n                <field name="name" />\n                <field name="custom_field" />\n            </tree>\n        ',
+                        "name": "res.partner.tree",
+                    },
+                },
+            ],
+            "ir.actions.act_window": [
+                {
+                    "id": "res_partner_action",
+                    "model": "ir.actions.act_window",
+                    "name": "Contacts",
+                    "target_model": "res.partner",
+                    "file_path": "views/res_partner.xml",
+                    "data": {
+                        "name": "Contacts",
+                        "type": "ir.actions.act_window",
+                        "res_model": "res.partner",
+                        "view_type": "form",
+                        "view_id": "res_partner_view_tree",
+                    },
+                }
+            ],
+            "ir.actions.report": [
+                {
+                    "id": "action_report_badge",
+                    "model": "ir.actions.report",
+                    "name": "Badge",
+                    "file_path": "reports/reports.xml",
+                    "data": {
+                        "name": "Badge",
+                        "model": "res.partner",
+                        "report_type": "qweb-pdf",
+                        "report_name": "module.report_contact_badge",
+                        "report_file": "module.report_contact_badge",
+                        "print_report_name": "'Badge - %s - %s' % (object.name or '', object.name)",
+                        "binding_model_id": "model_res_partner",
+                        "binding_type": "report",
+                    },
+                }
+            ],
+        }
+
         cls.module_to_dict = {
             "name": cls.module_name,
             "code": cls.module_code_stats,
             "manifest": cls.module_manifest,
             "models": cls.module_models,
+            "data": cls.module_data,
         }
 
     @classmethod

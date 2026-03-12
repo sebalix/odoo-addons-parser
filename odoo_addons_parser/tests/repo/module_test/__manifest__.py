@@ -8,7 +8,11 @@
     "website": "https://example.com/odoo-addons-parser",
     "license": "AGPL-3",
     "depends": ["base"],
-    "data": ["views/res_partner.xml"],
+    "data": [
+        "views/res_partner.xml",
+        "reports/reports.xml",
+        "reports/templates.xml",
+    ],
     "demo": [],
     "installable": True,
 }

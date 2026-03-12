@@ -10,6 +10,7 @@ import typing
 import pygount
 
 from .code import PyFile
+from .data_xml import XmlFile
 
 if typing.TYPE_CHECKING:
     from .repository import RepositoryParser
@@ -27,6 +28,7 @@ class ModuleParser:
         repo_parser: typing.Optional["RepositoryParser"] = None,
         code_stats: bool = True,
         scan_models: bool = True,
+        scan_data: bool = True,
     ):
         self.folder_path = pathlib.Path(folder_path).resolve()
         if not self.folder_path.exists():
@@ -37,9 +39,11 @@ class ModuleParser:
         self.repo_parser = repo_parser
         self._code_stats = code_stats
         self._scan_models = scan_models
+        self._scan_data = scan_data
         self.summary = pygount.ProjectSummary()
         self.code = {}
         self.models = {}
+        self.data = {}
         self._run()
 
     @staticmethod
@@ -82,6 +86,8 @@ class ModuleParser:
                 self._run_code_stats(file_path)
             if self._scan_models and file_path.suffix == ".py":
                 self._run_scan_models(file_path)
+            if self._scan_data and file_path.suffix == ".xml":
+                self._run_scan_data(file_path)
         if self._code_stats:
             summaries = dict.fromkeys(self.languages, 0)
             for summary in self.summary.language_to_language_summary_map.values():
@@ -134,6 +140,24 @@ class ModuleParser:
                     self.models[key]["name"] = key
                     del self.models[key]["inherit"]
 
+    def _run_scan_data(self, file_path: pathlib.Path):
+        """Parse XML files and extract data records."""
+        try:
+            # Make file path relative to module path for consistency
+            relative_file_path = file_path.relative_to(self.folder_path)
+            xml_file = XmlFile(file_path)
+            xml_data = xml_file.to_dict()
+            # Merge into self.data structure
+            for model_name, records in xml_data.items():
+                if model_name not in self.data:
+                    self.data[model_name] = []
+                # Update file paths to be relative
+                for record in records:
+                    record["file_path"] = str(relative_file_path)
+                self.data[model_name].extend(records)
+        except Exception as exc:
+            _logger.warning(f"Unable to parse XML file {file_path}: {exc}")
+
     def to_dict(self) -> dict:
         data = {
             "name": self.name,
@@ -143,4 +167,6 @@ class ModuleParser:
             data["code"] = self.code
         if self._scan_models:
             data["models"] = self.models
+        if self._scan_data and self.data:
+            data["data"] = self.data
         return data
