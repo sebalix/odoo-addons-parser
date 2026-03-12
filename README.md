@@ -11,7 +11,9 @@ Features:
 - scan an Odoo repository, a folder of modules (repository) or a module only
 - count the number of lines of code (Python, XML, JavaScript and CSS by default)
 - read the manifest file (to get useful data like authors or dependencies)
-- extract Odoo models info (fields, methods...)
+- extract Odoo models info (fields, methods, data...)
+
+It doesn't rely on any Odoo runtime; instead, it works through static file analysis.
 
 ## ModuleParser class
 

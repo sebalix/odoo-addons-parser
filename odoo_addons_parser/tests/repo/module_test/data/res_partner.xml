@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Sebastien Alix <https://github.com/sebalix
+     License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). -->
+<odoo>
+
+    <data noupdate="1">
+
+        <record id="director" model="res.partner">
+            <field name="name">Director</field>
+        </record>
+
+    </data>
+
+    <record id="accountant" model="res.partner">
+        <field name="name">Accountant</field>
+    </record>
+
+</odoo>

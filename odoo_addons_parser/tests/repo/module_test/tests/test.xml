@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Sebastien Alix <https://github.com/sebalix
+     License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). -->
+<odoo>
+
+    <record id="contact_test" model="res.partner">
+        <field name="name">Contact not included</field>
+    </record>
+
+</odoo>
