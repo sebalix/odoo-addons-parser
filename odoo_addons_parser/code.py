@@ -51,8 +51,6 @@ class PyFile:
     """
 
     def __init__(self, path: pathlib.Path, module_path: pathlib.Path = None):
-        if not path.suffix == ".py":
-            raise ValueError(f"{path} is not a Python file")
         self.path = path
         self.module_path = module_path
         self.lines, self.tree = self._parse_file()
