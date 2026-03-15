@@ -142,10 +142,19 @@ class ModuleParser:
 
     def _run_scan_data(self, file_path: pathlib.Path):
         """Parse XML files and extract data records."""
+        manifest = self.manifest
+        data_paths = [pathlib.Path(path) for path in manifest.get("data", [])]
+        demo_paths = [pathlib.Path(path) for path in manifest.get("demo", [])]
         try:
             # Make file path relative to module path for consistency
             relative_file_path = file_path.relative_to(self.folder_path)
-            xml_file = XmlFile(file_path)
+            if relative_file_path in data_paths:
+                status = "data"
+            elif relative_file_path in demo_paths:
+                status = "demo"
+            else:
+                status = "not_loaded"
+            xml_file = XmlFile(self.name, file_path, status=status)
             xml_data = xml_file.to_dict()
             # Merge into self.data structure
             for model_name, records in xml_data.items():

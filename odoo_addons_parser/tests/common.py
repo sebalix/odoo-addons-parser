@@ -22,13 +22,15 @@ class CommonCase(unittest.TestCase):
             "CSS": 0,
             "JavaScript": 0,
             "Python": 42,
-            "XML": 59,
+            "XML": 78,
         }
         cls.module_manifest = {
             "author": "Camptocamp, Odoo Community Association (OCA)",
             "category": "Test Module",
             "data": [
+                "data/res_partner.xml",
                 "views/res_partner.xml",
+                "views/assets.xml",
                 "reports/reports.xml",
                 "reports/templates.xml",
             ],
@@ -166,6 +168,7 @@ class CommonCase(unittest.TestCase):
                     "target_model": "res.partner",
                     "name": "res.partner.form.inherit",
                     "file_path": "views/res_partner.xml",
+                    "status": "data",
                     "data": {
                         "model": "res.partner",
                         "inherit_id": "base.res_partner_form_view",
@@ -180,10 +183,22 @@ class CommonCase(unittest.TestCase):
                     "target_model": "res.partner",
                     "name": "res.partner.tree",
                     "file_path": "views/res_partner.xml",
+                    "status": "data",
                     "data": {
                         "model": "res.partner",
                         "arch": '\n            <tree>\n                <field name="name" />\n                <field name="custom_field" />\n            </tree>\n        ',
                         "name": "res.partner.tree",
+                    },
+                },
+                {
+                    "id": "report_contact_badge",
+                    "model": "ir.ui.view",
+                    "type": "qweb",
+                    "name": "report_contact_badge",
+                    "file_path": "reports/templates.xml",
+                    "status": "data",
+                    "data": {
+                        "arch": '<template id="report_contact_badge">\n        <t t-call="web.html_container">\n            <t t-foreach="docs" t-as="doc">\n                <h1 t-out="doc.name" />\n            </t>\n        </t>\n    </template>\n\n',
                     },
                 },
             ],
@@ -194,6 +209,7 @@ class CommonCase(unittest.TestCase):
                     "name": "Contacts",
                     "target_model": "res.partner",
                     "file_path": "views/res_partner.xml",
+                    "status": "data",
                     "data": {
                         "name": "Contacts",
                         "type": "ir.actions.act_window",
@@ -209,6 +225,7 @@ class CommonCase(unittest.TestCase):
                     "model": "ir.actions.report",
                     "name": "Badge",
                     "file_path": "reports/reports.xml",
+                    "status": "data",
                     "data": {
                         "name": "Badge",
                         "model": "res.partner",
@@ -220,6 +237,61 @@ class CommonCase(unittest.TestCase):
                         "binding_type": "report",
                     },
                 }
+            ],
+            "ir.ui.menu": [
+                {
+                    "id": "main_menu",
+                    "model": "ir.ui.menu",
+                    "name": "Main menu",
+                    "file_path": "views/res_partner.xml",
+                    "status": "data",
+                    "data": {"name": "Main menu", "parent_id": "base.root_menu"},
+                },
+                {
+                    "id": "submenu_menu",
+                    "model": "ir.ui.menu",
+                    "name": "Submenu",
+                    "file_path": "views/res_partner.xml",
+                    "status": "data",
+                    "data": {"name": "Submenu"},
+                },
+                {
+                    "id": "res_partner_menu",
+                    "model": "ir.ui.menu",
+                    "name": None,
+                    "file_path": "views/res_partner.xml",
+                    "status": "data",
+                    "data": {"action": "res_partner_action"},
+                },
+            ],
+            "ir.asset": [
+                {
+                    "id": "contact_badge_scss",
+                    "model": "ir.asset",
+                    "name": "Contact Badge SCSS",
+                    "file_path": "views/assets.xml",
+                    "status": "data",
+                    "data": {"name": "Contact Badge SCSS"},
+                }
+            ],
+            "res.partner": [
+                {
+                    "id": "director",
+                    "model": "res.partner",
+                    "name": "Director",
+                    "file_path": "data/res_partner.xml",
+                    "status": "data",
+                    "noupdate": True,
+                    "data": {"name": "Director"},
+                },
+                {
+                    "id": "accountant",
+                    "model": "res.partner",
+                    "name": "Accountant",
+                    "file_path": "data/res_partner.xml",
+                    "status": "data",
+                    "data": {"name": "Accountant"},
+                },
             ],
         }
 

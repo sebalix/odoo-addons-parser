@@ -9,7 +9,9 @@
     "license": "AGPL-3",
     "depends": ["base"],
     "data": [
+        "data/res_partner.xml",
         "views/res_partner.xml",
+        "views/assets.xml",
         "reports/reports.xml",
         "reports/templates.xml",
     ],
