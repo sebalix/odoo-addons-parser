@@ -3,6 +3,8 @@
 
 import copy
 
+from odoo_addons_parser import ModuleParser
+
 from . import common
 
 
@@ -30,6 +32,15 @@ class TestModule(common.CommonCase):
         self.assertDictEqual(mod.manifest, self.module_manifest)
         self.assertDictEqual(mod.code, self.module_code_stats)
         self.assertFalse(mod.models)
+
+    def test_init_folder_not_exist(self):
+        with self.assertRaises(ValueError):
+            ModuleParser("folder/not/exist")
+
+    def test_init_folder_not_odoo_module(self):
+        self.assertTrue(self.repo_path.exists())
+        with self.assertRaises(ValueError):
+            ModuleParser(self.repo_path)
 
     def test_to_dict(self):
         mod = self._run_module_parser()
