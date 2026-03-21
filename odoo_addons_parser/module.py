@@ -16,6 +16,8 @@ if typing.TYPE_CHECKING:
 
 _logger = logging.getLogger(__name__)
 
+MANIFEST_FILES = ["__openerp__.py", "__manifest__.py"]
+
 
 class ModuleParser:
     def __init__(
@@ -27,6 +29,10 @@ class ModuleParser:
         scan_models: bool = True,
     ):
         self.folder_path = pathlib.Path(folder_path).resolve()
+        if not self.folder_path.exists():
+            raise ValueError(f"'{folder_path}' doesn't exist")
+        if not self._get_manifest_path(self.folder_path):
+            raise ValueError(f"'{folder_path}' is not an Odoo module")
         self.languages = languages
         self.repo_parser = repo_parser
         self._code_stats = code_stats
@@ -36,12 +42,19 @@ class ModuleParser:
         self.models = {}
         self._run()
 
+    @staticmethod
+    def _get_manifest_path(folder_path):
+        for manifest_name in MANIFEST_FILES:
+            manifest_path = pathlib.Path(folder_path, manifest_name)
+            if manifest_path.exists():
+                return manifest_path
+
     @property
     def name(self) -> str:
         return self.folder_path.name
 
     @property
-    def file_paths(self) -> list[os.PathLike]:
+    def file_paths(self) -> list[pathlib.Path]:
         paths = []
         for dirpath, _dirnames, filenames in os.walk(
             self.folder_path, followlinks=False
@@ -55,22 +68,19 @@ class ModuleParser:
 
     @property
     def manifest(self) -> dict:
-        for manifest_name in ("__openerp__.py", "__manifest__.py"):
-            manifest_path = pathlib.Path(self.folder_path, manifest_name)
-            if manifest_path.exists():
-                with open(manifest_path) as file_:
-                    try:
-                        manifest = ast.literal_eval(file_.read())
-                    except ValueError:
-                        return {}
-                    return manifest
-        return {}
+        manifest_path = self._get_manifest_path(self.folder_path)
+        with open(manifest_path) as file_:
+            try:
+                manifest = ast.literal_eval(file_.read())
+            except ValueError:
+                return {}
+            return manifest
 
     def _run(self):
         for file_path in self.file_paths:
             if self._code_stats:
                 self._run_code_stats(file_path)
-            if self._scan_models:
+            if self._scan_models and file_path.suffix == ".py":
                 self._run_scan_models(file_path)
         if self._code_stats:
             summaries = dict.fromkeys(self.languages, 0)
@@ -81,7 +91,7 @@ class ModuleParser:
                     summaries[language] += summary.code_count
             self.code = summaries
 
-    def _run_code_stats(self, file_path: os.PathLike):
+    def _run_code_stats(self, file_path: pathlib.Path):
         try:
             source_analysis = pygount.SourceAnalysis.from_file(
                 file_path,
@@ -95,11 +105,9 @@ class ModuleParser:
         else:
             self.summary.add(source_analysis)
 
-    def _run_scan_models(self, file_path: os.PathLike):
+    def _run_scan_models(self, file_path: pathlib.Path):
         try:
             pyfile = PyFile(file_path, module_path=self.folder_path)
-        except ValueError:
-            return
         except RuntimeError as exc:
             _logger.warning(str(exc))
             return

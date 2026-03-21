@@ -36,7 +36,9 @@ class TestOdoo(common.CommonCase):
             os.environ.get("ODOO_DOWNLOAD_DIR_PATH", ".odoo_download_dir_path")
         )
         cls.download_path.mkdir(parents=True, exist_ok=True)
-        for version in ODOO_VERSIONS:
+        odoo_version = float(os.environ.get("TEST_ODOO_VERSION", 0))
+        cls.odoo_versions = [odoo_version] if odoo_version else list(ODOO_VERSIONS)
+        for version in cls.odoo_versions:
             file_path = cls.download_path.joinpath(f"odoo-{version}.zip")
             if not file_path.exists():
                 url = ODOO_TPL_URL.format(version=version)
@@ -49,14 +51,14 @@ class TestOdoo(common.CommonCase):
                     zip_ref.extractall(cls.download_path)
 
     def test_init(self):
-        for version in ODOO_VERSIONS:
+        for version in self.odoo_versions:
             folder_path = self.download_path.joinpath(f"odoo-{version}")
             parser = OdooParser(folder_path)
             self.assertEqual(parser.name, f"odoo-{version}")
             self.assertTrue(parser.repositories)
 
     def test_to_dict(self):
-        for version in ODOO_VERSIONS:
+        for version in self.odoo_versions:
             folder_path = self.download_path.joinpath(f"odoo-{version}")
             # Disable code_stats to make tests faster
             parser = OdooParser(folder_path, code_stats=False)
@@ -83,7 +85,7 @@ class TestOdoo(common.CommonCase):
             self.assertIn("res.partner", sale_res_partner["inherit"])
 
     def test_to_dict_merge_base_models_into_base_module(self):
-        version = ODOO_VERSIONS[-1]
+        version = self.odoo_versions[-1]
         folder_path = self.download_path.joinpath(f"odoo-{version}")
         # Disable code_stats to make tests faster
         # + collect BaseModel, Model, TransientModel into 'base' module
