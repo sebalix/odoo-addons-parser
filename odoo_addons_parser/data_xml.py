@@ -21,8 +21,8 @@ class XmlValidationError(Exception):
     pass
 
 
-class XmlFile:
-    """XML data file.
+class XmlBackendFile:
+    """XML backend data file.
 
     Such file could contain record definitions such as views, menu, records...
 
@@ -51,6 +51,8 @@ class XmlFile:
         except ET.ParseError as e:
             _logger.warning(f"XML parse error in {self.file_path}: {e}")
             return {tag: [] for tag in TAGS}
+        except NotImplementedError:
+            raise
         except Exception as e:
             _logger.warning(
                 f"Unexpected error parsing {self.file_path}: {e}", exc_info=True
@@ -120,7 +122,7 @@ class XmlTag:
 
     def __init__(
         self,
-        xmlfile: XmlFile,
+        xmlfile: XmlBackendFile,
         node: ET.Element,
         file_path: pathlib.Path,
         root_node: ET.Element,
@@ -169,6 +171,7 @@ class XmlTag:
         result = {
             "id": self.id_,
             "model": self.model,
+            # FIXME: put relative file_path to module
             "file_path": str(self.file_path),
             "data": self.data,
             "status": self.status,
@@ -187,7 +190,7 @@ class XmlRecord(XmlTag):
 
     def __init__(
         self,
-        xmlfile: XmlFile,
+        xmlfile: XmlBackendFile,
         node: ET.Element,
         file_path: pathlib.Path,
         root_node: ET.Element,
@@ -270,7 +273,7 @@ class XmlTemplate(XmlTag):
 
     def __init__(
         self,
-        xmlfile: XmlFile,
+        xmlfile: XmlBackendFile,
         node: ET.Element,
         file_path: pathlib.Path,
         root_node: ET.Element,
@@ -305,7 +308,7 @@ class XmlMenuItem(XmlTag):
 
     def __init__(
         self,
-        xmlfile: XmlFile,
+        xmlfile: XmlBackendFile,
         node: ET.Element,
         file_path: pathlib.Path,
         root_node: ET.Element,
@@ -351,7 +354,7 @@ class XmlAsset(XmlTag):
 
     def __init__(
         self,
-        xmlfile: XmlFile,
+        xmlfile: XmlBackendFile,
         node: ET.Element,
         file_path: pathlib.Path,
         root_node: ET.Element,
@@ -379,9 +382,10 @@ class XmlAsset(XmlTag):
         return self.node.get("name")
 
 
-# Root tags can be found in 'odoo/tools/convert.py', method 'xml_import.__init__()'
+# Backend tags can be found in 'odoo/tools/convert.py',
+# method 'xml_import.__init__()'.
 # NOTE:
-#   - only root tags from Odoo >= 11.0 are supported. Tags such as <workflow> or
+#   - only tags from Odoo >= 11.0 are supported. Tags such as <workflow> or
 #     <ir_set> are not part of them (dropped in Odoo 11.0).
 #   - <delete>, <function> and <assert> tags are not added neither as they're not
 #     representing resources that can be used in code or reverse dependencies
@@ -390,7 +394,7 @@ TAGS = {
     "template": XmlTemplate,
     "menuitem": XmlMenuItem,
     "asset": XmlAsset,
-    # TODO add support for these root tags:
+    # TODO add support for these tags:
     # <report> (Odoo <= 16.0, create an 'ir.actions.report' record)
     # <act_window> (Odoo <= 16.0)
 }

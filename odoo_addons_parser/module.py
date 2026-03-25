@@ -10,7 +10,7 @@ import typing
 import pygount
 
 from .code import PyFile
-from .data_xml import XmlFile
+from .data_xml import XmlBackendFile
 
 if typing.TYPE_CHECKING:
     from .repository import RepositoryParser
@@ -148,22 +148,33 @@ class ModuleParser:
         try:
             # Make file path relative to module path for consistency
             relative_file_path = file_path.relative_to(self.folder_path)
-            if relative_file_path in data_paths:
-                status = "data"
-            elif relative_file_path in demo_paths:
-                status = "demo"
+            # Frontend (static) files
+            if relative_file_path.parts[0] == "static":
+                # => Ignored, to support later?
+                return
+            # Backend files
             else:
-                status = "not_loaded"
-            xml_file = XmlFile(self.name, file_path, status=status)
-            xml_data = xml_file.to_dict()
-            # Merge into self.data structure
-            for model_name, records in xml_data.items():
-                if model_name not in self.data:
-                    self.data[model_name] = []
-                # Update file paths to be relative
-                for record in records:
-                    record["file_path"] = str(relative_file_path)
-                self.data[model_name].extend(records)
+                # Classify the file as data/demo or not loaded
+                if relative_file_path in data_paths:
+                    status = "data"
+                elif relative_file_path in demo_paths:
+                    status = "demo"
+                else:
+                    status = "not_loaded"
+                xml_file = XmlBackendFile(self.name, file_path, status=status)
+                xml_data = xml_file.to_dict()
+                # Merge into self.backend_data structure
+                for model_name, records in xml_data.items():
+                    if model_name not in self.backend_data:
+                        self.backend_data[model_name] = []
+                    # Update file paths to be relative
+                    # FIXME: should be done in XmlTag.to_dict(), not there
+                    for record in records:
+                        record["file_path"] = str(relative_file_path)
+                    self.backend_data[model_name].extend(records)
+        except NotImplementedError:
+            _logger.error(f"Unable to parse XML file {file_path}")
+            raise
         except Exception as exc:
             _logger.warning(f"Unable to parse XML file {file_path}: {exc}")
 
