@@ -21,6 +21,85 @@ class XmlValidationError(Exception):
     pass
 
 
+class XmlFrontendFile:
+    """XML frontend data file.
+
+    Such file contains static template definitions.
+    """
+
+    def __init__(self, module_name: str, file_path: pathlib.Path):
+        self.module_name = module_name
+        self.file_path = file_path
+        self.elements = self._parse_file()
+
+    def _parse_file(self) -> Dict:
+        """Parse the XML file and extract relevant elements."""
+        try:
+            tree = ET.parse(self.file_path)
+            root = tree.getroot()
+            return self._parse_root_node(root)
+        except ET.ParseError as e:
+            _logger.warning(f"XML parse error in {self.file_path}: {e}")
+            return {}
+        except NotImplementedError:
+            raise
+        except Exception as e:
+            _logger.warning(
+                f"Unexpected error parsing {self.file_path}: {e}", exc_info=True
+            )
+            return {}
+
+    def _parse_root_node(self, root):
+        elements = {}
+        # Root node is the only one template in file
+        name = root.attrib.get("t-name") or root.attrib.get("t-inherit")
+        if name:
+            element = XmlFrontendTag(
+                self, root, file_path=self.file_path, root_node=root
+            )
+            elements[name] = element
+            return elements
+        # Root node contains templates
+        for node in root:
+            name = node.attrib.get("t-name") or node.attrib.get("t-inherit")
+            if not name:
+                continue
+            element = XmlFrontendTag(
+                self, node, file_path=self.file_path, root_node=root
+            )
+            elements[name] = element
+
+
+class XmlFrontendTag:
+    """Representation of an Odoo frontend XML tag/template."""
+
+    def __init__(
+        self,
+        xmlfile: XmlFrontendFile,
+        node: ET.Element,
+        file_path: pathlib.Path,
+        root_node: ET.Element,
+    ):
+        self.xmlfile = xmlfile
+        self.node = node
+        self.file_path = file_path
+        self.root_node = root_node
+        self.name = node.attrib.get("t-name")
+        self.inherit = node.attrib.get("t-inherit")
+        self.inherit_mode = node.attrib.get("t-inherit-mode")
+        self.body = ET.tostring(self.node, encoding="unicode")
+
+    def to_dict(self) -> Dict:
+        """Convert to dictionary format."""
+        return {
+            "name": self.name,
+            "inherit": self.inherit,
+            "inherit_mode": self.inherit_mode,
+            "file_path": str(self.file_path),
+            "body": self.body,
+        }
+
+
 class XmlBackendFile:
     """XML backend data file.
 

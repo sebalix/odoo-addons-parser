@@ -159,7 +159,7 @@ class CommonCase(unittest.TestCase):
                 "type": "Model",
             },
         }
-        cls.module_data = {
+        cls.module_backend_data = {
             "ir.ui.view": [
                 {
                     "id": "res_partner_form_view",
@@ -300,7 +300,7 @@ class CommonCase(unittest.TestCase):
             "code": cls.module_code_stats,
             "manifest": cls.module_manifest,
             "models": cls.module_models,
-            "data": cls.module_data,
+            "backend_data": cls.module_backend_data,
         }
 
     @classmethod

@@ -16,7 +16,7 @@ class TestModule(common.CommonCase):
         self.assertDictEqual(mod.manifest, self.module_manifest)
         self.assertDictEqual(mod.code, self.module_code_stats)
         self.assertDictEqual(mod.models, self.module_models)
-        self.assertDictEqual(mod.data, self.module_data)
+        self.assertDictEqual(mod.backend_data, self.module_backend_data)
 
     def test_init_no_code_stats(self):
         mod = self._run_module_parser(code_stats=False)
@@ -25,7 +25,7 @@ class TestModule(common.CommonCase):
         self.assertDictEqual(mod.manifest, self.module_manifest)
         self.assertFalse(mod.code)
         self.assertDictEqual(mod.models, self.module_models)
-        self.assertDictEqual(mod.data, self.module_data)
+        self.assertDictEqual(mod.backend_data, self.module_backend_data)
 
     def test_init_no_scan_models(self):
         mod = self._run_module_parser(scan_models=False)
@@ -34,7 +34,7 @@ class TestModule(common.CommonCase):
         self.assertDictEqual(mod.manifest, self.module_manifest)
         self.assertDictEqual(mod.code, self.module_code_stats)
         self.assertFalse(mod.models)
-        self.assertDictEqual(mod.data, self.module_data)
+        self.assertDictEqual(mod.backend_data, self.module_backend_data)
 
     def test_init_no_scan_data(self):
         mod = self._run_module_parser(scan_data=False)
@@ -43,7 +43,7 @@ class TestModule(common.CommonCase):
         self.assertDictEqual(mod.manifest, self.module_manifest)
         self.assertDictEqual(mod.code, self.module_code_stats)
         self.assertDictEqual(mod.models, self.module_models)
-        self.assertFalse(mod.data)
+        self.assertFalse(mod.backend_data)
 
     def test_init_folder_not_exist(self):
         with self.assertRaises(ValueError):
@@ -73,5 +73,5 @@ class TestModule(common.CommonCase):
     def test_to_dict_no_scan_data(self):
         mod = self._run_module_parser(scan_data=False)
         mod_to_dict = copy.deepcopy(self.module_to_dict)
-        del mod_to_dict["data"]
+        del mod_to_dict["backend_data"]
         self.assertDictEqual(mod.to_dict(), mod_to_dict)

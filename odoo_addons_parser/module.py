@@ -10,7 +10,7 @@ import typing
 import pygount
 
 from .code import PyFile
-from .data_xml import XmlBackendFile
+from .data_xml import XmlBackendFile, XmlFrontendFile
 
 if typing.TYPE_CHECKING:
     from .repository import RepositoryParser
@@ -43,7 +43,8 @@ class ModuleParser:
         self.summary = pygount.ProjectSummary()
         self.code = {}
         self.models = {}
-        self.data = {}
+        self.backend_data = {}
+        self.frontend_data = []
         self._run()
 
     @staticmethod
@@ -150,8 +151,12 @@ class ModuleParser:
             relative_file_path = file_path.relative_to(self.folder_path)
             # Frontend (static) files
             if relative_file_path.parts[0] == "static":
-                # => Ignored, to support later?
-                return
+                xml_file = XmlFrontendFile(self.name, file_path)
+                xml_data = xml_file.to_dict()
+                for key, templates in xml_data.items():
+                    if key not in self.frontend_data:
+                        self.frontend_data[key] = []
+                    self.frontend_data[key].extend(templates)
             # Backend files
             else:
                 # Classify the file as data/demo or not loaded
@@ -187,6 +192,8 @@ class ModuleParser:
             data["code"] = self.code
         if self._scan_models:
             data["models"] = self.models
-        if self._scan_data and self.data:
-            data["data"] = self.data
+        if self._scan_data and self.backend_data:
+            data["backend_data"] = self.backend_data
+        if self._scan_data and self.frontend_data:
+            data["frontend_data"] = self.frontend_data
         return data
