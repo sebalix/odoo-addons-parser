@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Sebastien Alix <https://github.com/sebalix
+     License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). -->
+<odoo>
+
+    <asset id="contact_badge_scss" name="Contact Badge SCSS" active="True">
+        <field name="key">module_test.contact_badge_scss</field>
+        <bundle>web.assets_frontend</bundle>
+        <path>/module_test/static/src/scss/contact_badge.scss</path>
+    </asset>
+
+</odoo>

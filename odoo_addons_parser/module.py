@@ -10,6 +10,8 @@ import typing
 import pygount
 
 from .code import PyFile
+from .data_csv import CsvFile
+from .data_xml import XmlFile
 
 if typing.TYPE_CHECKING:
     from .repository import RepositoryParser
@@ -27,6 +29,7 @@ class ModuleParser:
         repo_parser: typing.Optional["RepositoryParser"] = None,
         code_stats: bool = True,
         scan_models: bool = True,
+        scan_data: bool = True,
     ):
         self.folder_path = pathlib.Path(folder_path).resolve()
         if not self.folder_path.exists():
@@ -37,9 +40,12 @@ class ModuleParser:
         self.repo_parser = repo_parser
         self._code_stats = code_stats
         self._scan_models = scan_models
+        self._scan_data = scan_data
         self.summary = pygount.ProjectSummary()
         self.code = {}
         self.models = {}
+        self.data = {}
+        self.demo = {}
         self._run()
 
     @staticmethod
@@ -82,6 +88,8 @@ class ModuleParser:
                 self._run_code_stats(file_path)
             if self._scan_models and file_path.suffix == ".py":
                 self._run_scan_models(file_path)
+            if self._scan_data and file_path.suffix in [".xml", ".csv"]:
+                self._run_scan_data(file_path)
         if self._code_stats:
             summaries = dict.fromkeys(self.languages, 0)
             for summary in self.summary.language_to_language_summary_map.values():
@@ -134,6 +142,47 @@ class ModuleParser:
                     self.models[key]["name"] = key
                     del self.models[key]["inherit"]
 
+    def _run_scan_data(self, file_path: pathlib.Path):
+        """Parse XML and CSV files and extract data records."""
+        manifest = self.manifest
+        data_paths = [pathlib.Path(path) for path in manifest.get("data", [])]
+        demo_paths = [pathlib.Path(path) for path in manifest.get("demo", [])]
+        try:
+            # Make file path relative to module path for consistency
+            relative_file_path = file_path.relative_to(self.folder_path)
+            # Ignore frontend (static) and tests files
+            if relative_file_path.parts[0] in ("static", "tests"):
+                return
+            # Backend files
+            else:
+                # Classify the file as data/demo or not loaded
+                demo = loaded = False
+                if relative_file_path in data_paths:
+                    loaded = True
+                elif relative_file_path in demo_paths:
+                    loaded = True
+                    demo = True
+                # Handle different file types
+                if file_path.suffix == ".xml":
+                    xml_file = XmlFile(self.folder_path, file_path, loaded=loaded)
+                    file_data = xml_file.to_dict()
+                elif file_path.suffix == ".csv":
+                    csv_file = CsvFile(self.folder_path, file_path, loaded=loaded)
+                    file_data = csv_file.to_dict()
+                else:
+                    return
+                # Merge into self.data or self.demo structure
+                collection = self.demo if demo else self.data
+                for model_name, records in file_data.items():
+                    if model_name not in collection:
+                        collection[model_name] = []
+                    collection[model_name].extend(records)
+        except NotImplementedError:
+            _logger.error(f"Unable to parse data file {file_path}")
+            raise
+        except Exception as exc:
+            _logger.warning(f"Unable to parse data file {file_path}: {exc}")
+
     def to_dict(self) -> dict:
         data = {
             "name": self.name,
@@ -143,4 +192,9 @@ class ModuleParser:
             data["code"] = self.code
         if self._scan_models:
             data["models"] = self.models
+        if self._scan_data:
+            if self.data:
+                data["data"] = self.data
+            if self.demo:
+                data["demo"] = self.demo
         return data

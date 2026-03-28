@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Sebastien Alix <https://github.com/sebalix
+     License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). -->
+<odoo>
+
+    <record id="action_report_badge" model="ir.actions.report">
+        <field name="name">Badge</field>
+        <field name="model">res.partner</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">module.report_contact_badge</field>
+        <field name="report_file">module.report_contact_badge</field>
+        <field name="print_report_name">'Badge - %s - %s' % (object.name or '', object.name)</field>
+        <field name="binding_model_id" ref="model_res_partner"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- 'report' tag supported until Odoo 16.0 -->
+    <report
+        id="report_partner_simple"
+        string="Partner Simple Report"
+        model="res.partner"
+        report_type="qweb-pdf"
+        name="module_test.report_partner_simple"
+        file="module_test.report_partner_simple"
+    />
+
+    <report
+        id="report_partner_detailed"
+        string="Partner Detailed Report"
+        model="res.partner"
+        report_type="qweb-pdf"
+        name="module_test.report_partner_detailed"
+        file="module_test.report_partner_detailed"
+        print_report_name="'Partner Report - %s' % (object.name)"
+    />
+
+</odoo>

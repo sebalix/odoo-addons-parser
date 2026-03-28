@@ -22,13 +22,20 @@ class CommonCase(unittest.TestCase):
             "CSS": 0,
             "JavaScript": 0,
             "Python": 42,
-            "XML": 14,
+            "XML": 115,
         }
         cls.module_manifest = {
             "author": "Camptocamp, Odoo Community Association (OCA)",
             "category": "Test Module",
-            "data": ["views/res_partner.xml"],
-            "demo": [],
+            "data": [
+                "security/ir.model.access.csv",
+                "data/res_partner.xml",
+                "views/res_partner.xml",
+                "views/assets.xml",
+                "reports/reports.xml",
+                "reports/templates.xml",
+            ],
+            "demo": ["demo/res_partner.xml"],
             "depends": ["base"],
             "installable": True,
             "license": "AGPL-3",
@@ -153,12 +160,244 @@ class CommonCase(unittest.TestCase):
                 "type": "Model",
             },
         }
-        cls.module_to_dict = {
-            "name": cls.module_name,
-            "code": cls.module_code_stats,
-            "manifest": cls.module_manifest,
-            "models": cls.module_models,
+        cls.module_data = {
+            "ir.model.access": [
+                {
+                    "id": "access_res_partner_group_account",
+                    "model": "ir.model.access",
+                    "file_path": "security/ir.model.access.csv",
+                    "loaded": True,
+                    "data": {
+                        "id": "access_res_partner_group_account",
+                        "name": "res_partner group account",
+                        "model_id": "model_res_partner",
+                        "group_id": "group_user",
+                        "perm_read": "1",
+                        "perm_write": "1",
+                        "perm_create": "1",
+                        "perm_unlink": "0",
+                    },
+                },
+            ],
+            "ir.ui.view": [
+                {
+                    "id": "res_partner_form_view",
+                    "model": "ir.ui.view",
+                    "type": "normal",
+                    "target_model": "res.partner",
+                    "name": "res.partner.form.inherit",
+                    "file_path": "views/res_partner.xml",
+                    "loaded": True,
+                    "data": {
+                        "model": "res.partner",
+                        "inherit_id": "base.res_partner_form_view",
+                        "arch": '\n            <field name="name" position="after">\n                <field name="custom_field" />\n                <field name="computed_field" />\n            </field>\n        ',
+                        "name": "res.partner.form.inherit",
+                    },
+                },
+                {
+                    "id": "res_partner_tree_view",
+                    "model": "ir.ui.view",
+                    "type": "normal",
+                    "target_model": "res.partner",
+                    "name": "res.partner.tree",
+                    "file_path": "views/res_partner.xml",
+                    "loaded": True,
+                    "data": {
+                        "model": "res.partner",
+                        "arch": '\n            <tree>\n                <field name="name" />\n                <field name="custom_field" />\n            </tree>\n        ',
+                        "name": "res.partner.tree",
+                    },
+                },
+                {
+                    "id": "report_contact_badge",
+                    "model": "ir.ui.view",
+                    "type": "qweb",
+                    "name": "report_contact_badge",
+                    "file_path": "reports/templates.xml",
+                    "loaded": True,
+                    "data": {
+                        "arch": '<template id="report_contact_badge">\n        <t t-call="web.html_container">\n            <t t-foreach="docs" t-as="doc">\n                <h1 t-out="doc.name" />\n            </t>\n        </t>\n    </template>\n\n',
+                    },
+                },
+            ],
+            "ir.actions.act_window": [
+                {
+                    "id": "res_partner_action",
+                    "model": "ir.actions.act_window",
+                    "name": "Contacts",
+                    "target_model": "res.partner",
+                    "file_path": "views/res_partner.xml",
+                    "loaded": True,
+                    "data": {
+                        "name": "Contacts",
+                        "type": "ir.actions.act_window",
+                        "res_model": "res.partner",
+                        "view_type": "form",
+                        "view_id": "res_partner_view_tree",
+                    },
+                },
+                {
+                    "id": "act_window_partner_simple",
+                    "model": "ir.actions.act_window",
+                    "name": "Partner Simple Action",
+                    "file_path": "views/res_partner.xml",
+                    "loaded": True,
+                    "data": {
+                        "name": "Partner Simple Action",
+                        "type": "ir.actions.act_window",
+                        "res_model": "res.partner",
+                        "view_mode": "tree,form",
+                        "view_type": "tree",
+                        "target": "current",
+                    },
+                },
+            ],
+            "ir.actions.report": [
+                {
+                    "id": "action_report_badge",
+                    "model": "ir.actions.report",
+                    "name": "Badge",
+                    "file_path": "reports/reports.xml",
+                    "loaded": True,
+                    "data": {
+                        "name": "Badge",
+                        "model": "res.partner",
+                        "report_type": "qweb-pdf",
+                        "report_name": "module.report_contact_badge",
+                        "report_file": "module.report_contact_badge",
+                        "print_report_name": "'Badge - %s - %s' % (object.name or '', object.name)",
+                        "binding_model_id": "model_res_partner",
+                        "binding_type": "report",
+                    },
+                },
+                {
+                    "id": "report_partner_simple",
+                    "model": "ir.actions.report",
+                    "name": "Partner Simple Report",
+                    "file_path": "reports/reports.xml",
+                    "loaded": True,
+                    "data": {
+                        "name": "Partner Simple Report",
+                        "model": "res.partner",
+                        "report_type": "qweb-pdf",
+                        "report_name": "module_test.report_partner_simple",
+                        "report_file": "module_test.report_partner_simple",
+                    },
+                },
+                {
+                    "id": "report_partner_detailed",
+                    "model": "ir.actions.report",
+                    "name": "Partner Detailed Report",
+                    "file_path": "reports/reports.xml",
+                    "loaded": True,
+                    "data": {
+                        "name": "Partner Detailed Report",
+                        "model": "res.partner",
+                        "report_type": "qweb-pdf",
+                        "report_name": "module_test.report_partner_detailed",
+                        "report_file": "module_test.report_partner_detailed",
+                        "print_report_name": "'Partner Report - %s' % (object.name)",
+                    },
+                },
+            ],
+            "ir.ui.menu": [
+                {
+                    "id": "main_menu",
+                    "model": "ir.ui.menu",
+                    "name": "Main menu",
+                    "file_path": "views/res_partner.xml",
+                    "loaded": True,
+                    "data": {"name": "Main menu", "parent_id": "base.root_menu"},
+                },
+                {
+                    "id": "submenu_menu",
+                    "model": "ir.ui.menu",
+                    "name": "Submenu",
+                    "file_path": "views/res_partner.xml",
+                    "loaded": True,
+                    "data": {"name": "Submenu", "parent_id": "main_menu"},
+                },
+                {
+                    "id": "res_partner_menu",
+                    "model": "ir.ui.menu",
+                    "file_path": "views/res_partner.xml",
+                    "loaded": True,
+                    "data": {
+                        "action": "res_partner_action",
+                        "parent_id": "submenu_menu",
+                    },
+                },
+            ],
+            "ir.asset": [
+                {
+                    "id": "contact_badge_scss",
+                    "model": "ir.asset",
+                    "name": "Contact Badge SCSS",
+                    "file_path": "views/assets.xml",
+                    "loaded": True,
+                    "data": {"name": "Contact Badge SCSS"},
+                }
+            ],
+            "res.partner": [
+                {
+                    "id": "director",
+                    "model": "res.partner",
+                    "name": "Director",
+                    "file_path": "data/res_partner.xml",
+                    "loaded": True,
+                    "noupdate": True,
+                    "data": {"name": "Director"},
+                },
+                {
+                    "id": "accountant",
+                    "model": "res.partner",
+                    "name": "Accountant",
+                    "file_path": "data/res_partner.xml",
+                    "loaded": True,
+                    "data": {"name": "Accountant"},
+                },
+            ],
         }
+        cls.module_demo = {
+            "res.partner": [
+                {
+                    "id": "employee",
+                    "model": "res.partner",
+                    "name": "Employee",
+                    "file_path": "demo/res_partner.xml",
+                    "loaded": True,
+                    "data": {"name": "Employee"},
+                }
+            ]
+        }
+
+        cls.module_to_dict = cls._order_mod_data(
+            {
+                "name": cls.module_name,
+                "code": cls.module_code_stats,
+                "manifest": cls.module_manifest,
+                "models": cls.module_models,
+                "data": cls.module_data,
+                "demo": cls.module_demo,
+            }
+        )
+
+    @classmethod
+    def _order_mod_data(cls, data):
+        """Order module data to ease comparison between Python versions."""
+        for model, records in data["data"].items():
+            data["data"][model] = sorted(records, key=lambda rec: rec["id"])
+        for model, records in data["demo"].items():
+            data["demo"][model] = sorted(records, key=lambda rec: rec["id"])
+        return data
+
+    @classmethod
+    def _order_repo_data(cls, data):
+        """Order repository data to ease comparison between Python versions."""
+        for module_name, mod_data in data.items():
+            cls._order_mod_data(mod_data)
+        return data
 
     @classmethod
     def _run_module_parser(cls, **kw):
