@@ -399,7 +399,8 @@ class XmlActWindow(XmlSpecialTag):
 # method 'xml_import.__init__()'.
 # NOTE:
 #   - only tags from Odoo >= 11.0 are supported. Tags such as <workflow> or
-#     <ir_set> are not part of them (dropped in Odoo 11.0).
+#     <ir_set> are not part of them (dropped in Odoo 11.0), and are ignored
+#     (see IGNORED_TAGS).
 #   - <delete>, <function> and <assert> tags are not added neither as they're not
 #     representing resources that can be used in code or reverse dependencies
 TAGS = {
@@ -415,4 +416,8 @@ IGNORED_TAGS = [
     "function",
     "assert",  # Odoo <= 12.0, old way of writing tests
     "xpath",  # OCA/OpenUpgrade#19.0 using it in noupdate.xml files
+    "wizard",  # Odoo <= 7.0, dead code (not handled by Odoo >= 8.0 either)
+    "workflow",  # Odoo <= 10.0, dropped in Odoo 11.0
+    "ir_set",  # Odoo <= 10.0, deprecated since 9.0, dropped in Odoo 11.0
+    "url",  # Odoo 8.0 only
 ]
