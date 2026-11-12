@@ -8,6 +8,10 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
+# Root tags can be found in 'odoo/tools/convert.py',
+# method 'xml_import.parse()'. They can be nested in data files.
+ROOT_TAGS = ("data", "odoo", "openerp")
+
 
 class XmlParseError(Exception):
     """Exception raised for XML parsing errors."""
@@ -43,7 +47,7 @@ class XmlFile:
             tree = ET.parse(self.file_path)
             root = tree.getroot()
             # Handle both 'odoo' and 'openerp' root tags
-            if root.tag not in ("odoo", "openerp"):
+            if root.tag not in ROOT_TAGS:
                 _logger.warning(f"Unexpected root tag '{root.tag}' in {self.file_path}")
                 return {tag: [] for tag in TAGS}
             return self._parse_root_node(root)
@@ -64,8 +68,10 @@ class XmlFile:
         for node in root:
             if node.tag in IGNORED_TAGS:
                 continue
-            # <data> could exist alongside other tags, process it as a root node
-            if node.tag == "data":
+            # Root tags ('odoo', 'openerp', 'data') can be nested in data files
+            # (see 'odoo/tools/convert.py', method 'xml_import.parse()'):
+            # process them as root nodes
+            if node.tag in ROOT_TAGS:
                 data_elements = self._parse_root_node(node)
                 for tag, elts in data_elements.items():
                     elements[tag].extend(elts)

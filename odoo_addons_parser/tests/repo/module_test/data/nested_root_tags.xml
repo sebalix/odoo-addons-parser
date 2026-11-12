@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Sebastien Alix <https://github.com/sebalix
+     License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). -->
+<odoo>
+
+    <!-- Root tags can be nested in data files
+         (see 'odoo/tools/convert.py', method 'xml_import.parse()') -->
+    <data>
+        <openerp>
+            <record id="partner_nested_in_data" model="res.partner">
+                <field name="name">Nested Partner in Data</field>
+            </record>
+        </openerp>
+    </data>
+
+    <!-- Record tags can exist alongside nested root tags -->
+    <record id="partner_alongside_root_tags" model="res.partner">
+        <field name="name">Partner Alongside Root Tags</field>
+    </record>
+
+</odoo>
