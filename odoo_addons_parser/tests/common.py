@@ -22,7 +22,7 @@ class CommonCase(unittest.TestCase):
             "CSS": 0,
             "JavaScript": 0,
             "Python": 42,
-            "XML": 115,
+            "XML": 128,
         }
         cls.module_manifest = {
             "author": "Camptocamp, Odoo Community Association (OCA)",
@@ -30,6 +30,7 @@ class CommonCase(unittest.TestCase):
             "data": [
                 "security/ir.model.access.csv",
                 "data/res_partner.xml",
+                "data/nested_root_tags.xml",
                 "views/res_partner.xml",
                 "views/assets.xml",
                 "reports/reports.xml",
@@ -356,6 +357,22 @@ class CommonCase(unittest.TestCase):
                     "file_path": "data/res_partner.xml",
                     "loaded": True,
                     "data": {"name": "Accountant"},
+                },
+                {
+                    "id": "partner_alongside_root_tags",
+                    "model": "res.partner",
+                    "name": "Partner Alongside Root Tags",
+                    "file_path": "data/nested_root_tags.xml",
+                    "loaded": True,
+                    "data": {"name": "Partner Alongside Root Tags"},
+                },
+                {
+                    "id": "partner_nested_in_data",
+                    "model": "res.partner",
+                    "name": "Nested Partner in Data",
+                    "file_path": "data/nested_root_tags.xml",
+                    "loaded": True,
+                    "data": {"name": "Nested Partner in Data"},
                 },
             ],
         }
