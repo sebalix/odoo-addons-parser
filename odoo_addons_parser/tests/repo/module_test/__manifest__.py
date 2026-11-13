@@ -9,9 +9,11 @@
     "license": "AGPL-3",
     "depends": ["base"],
     "data": [
+        "security/security.xml",
         "security/ir.model.access.csv",
         "data/res_partner.xml",
         "data/nested_root_tags.xml",
+        "data/mail_template.xml",
         "views/res_partner.xml",
         "views/assets.xml",
         "reports/reports.xml",
