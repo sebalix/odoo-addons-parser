@@ -2,6 +2,7 @@
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
 
 import xml.etree.ElementTree as ET
+import xml.parsers.expat
 from typing import Dict, Optional, Any
 import pathlib
 import logging
@@ -11,6 +12,11 @@ _logger = logging.getLogger(__name__)
 # Root tags can be found in 'odoo/tools/convert.py',
 # method 'xml_import.parse()'. They can be nested in data files.
 ROOT_TAGS = ("data", "odoo", "openerp")
+
+# Field types whose value is the serialization of the field's children
+# (see 'odoo/tools/convert.py', method '_eval_xml()'). Their content is
+# already preserved in the raw 'xml' source of the record.
+MARKUP_FIELD_TYPES = ("xml", "html")
 
 
 class XmlParseError(Exception):
@@ -23,6 +29,77 @@ class XmlValidationError(Exception):
     """Exception raised for XML validation errors."""
 
     pass
+
+
+def _fixname(name: str) -> str:
+    """Expand a namespace name the same way as ElementTree does.
+
+    With namespace processing enabled, expat reports namespaced names as
+    'uri}local', while ElementTree exposes them as '{uri}local'.
+    """
+    return "{" + name if "}" in name else name
+
+
+def parse_xml_with_positions(
+    source: bytes,
+) -> tuple[ET.Element, Dict[ET.Element, tuple[int, int]]]:
+    """Parse an XML source and return the root node with element positions.
+
+    Build the same element tree as `ET.parse()` (same expat parser under
+    the hood), and record for each element the byte span of its source:
+    a tuple ``(start_index, end_index)``, where 'start_index' is the
+    position of the opening tag's '<' in the source, and 'end_index' the
+    position reported by expat at the end event (position of the closing
+    tag's '<' for regular elements, position right after the tag's final
+    '>' for empty/self-closing elements).
+    """
+    parser = xml.parsers.expat.ParserCreate(None, "}")
+    # Same option as 'ET.XMLParser'
+    parser.buffer_text = True
+    builder = ET.TreeBuilder()
+    stack = []
+    positions = {}
+
+    def start(name, attrs):
+        attrs = {_fixname(attr): value for attr, value in attrs.items()}
+        stack.append((builder.start(_fixname(name), attrs), parser.CurrentByteIndex))
+
+    def end(name):
+        element, start_index = stack.pop()
+        positions[element] = (start_index, parser.CurrentByteIndex)
+        builder.end(_fixname(name))
+
+    def chardata(text):
+        builder.data(text)
+
+    parser.StartElementHandler = start
+    parser.EndElementHandler = end
+    parser.CharacterDataHandler = chardata
+    parser.Parse(source, True)
+    return builder.close(), positions
+
+
+def _slice_source(source: bytes, start: int, end_index: int) -> bytes:
+    """Return the raw source of an element, from its opening tag's '<'
+    to the end of its closing tag (or of its self-closing tag)."""
+    if end_index > start and source[end_index : end_index + 2] == b"</":
+        # Regular element: 'end_index' is the position of the closing tag's '<'
+        return source[start : source.index(b">", end_index) + 1]
+    if end_index > start and source[end_index - 1 : end_index] == b">":
+        # Empty element: 'end_index' is the position right after the tag's '>'
+        return source[start:end_index]
+    # Fallback: search the end of the opening tag, skipping quoted '>' characters
+    quote = None
+    for index in range(start, len(source)):
+        char = source[index : index + 1]
+        if quote:
+            if char == quote:
+                quote = None
+        elif char in ('"', "'"):
+            quote = char
+        elif char == ">":
+            return source[start : index + 1]
+    raise ValueError("unterminated tag")
 
 
 class XmlFile:
@@ -39,19 +116,21 @@ class XmlFile:
         self.file_path = file_path
         self.relative_file_path = self.file_path.relative_to(self.module_path)
         self.loaded = loaded
+        self._source = b""
+        self._positions: Dict[ET.Element, tuple[int, int]] = {}
         self.elements = self._parse_file()
 
     def _parse_file(self) -> Dict:
         """Parse the XML file and extract relevant elements."""
         try:
-            tree = ET.parse(self.file_path)
-            root = tree.getroot()
+            self._source = self.file_path.read_bytes()
+            root, self._positions = parse_xml_with_positions(self._source)
             # Handle both 'odoo' and 'openerp' root tags
             if root.tag not in ROOT_TAGS:
                 _logger.warning(f"Unexpected root tag '{root.tag}' in {self.file_path}")
                 return {tag: [] for tag in TAGS}
             return self._parse_root_node(root)
-        except ET.ParseError as e:
+        except xml.parsers.expat.ExpatError as e:
             _logger.warning(f"XML parse error in {self.file_path}: {e}")
             return {tag: [] for tag in TAGS}
         except NotImplementedError:
@@ -107,6 +186,27 @@ class XmlFile:
                 for tag, elts in nested_elements.items():
                     elements[tag].extend(elts)
         return elements
+
+    def get_source(self, element: ET.Element) -> Optional[str]:
+        """Return the raw source of an element, from its opening tag's '<'
+        to the end of its closing tag (or of its self-closing tag).
+
+        Return 'None' if the source is not available (e.g. element not
+        found in the recorded positions).
+        """
+        span = self._positions.get(element)
+        if span is None:
+            return None
+        start, end_index = span
+        try:
+            raw = _slice_source(self._source, start, end_index)
+        except ValueError:
+            return None
+        try:
+            return raw.decode("utf-8")
+        except UnicodeDecodeError:
+            _logger.warning(f"Unable to decode XML source as UTF-8 in {self.file_path}")
+            return raw.decode("latin-1")
 
     def to_dict(self) -> Dict:
         """Convert all elements to simplified dictionary format."""
@@ -175,6 +275,16 @@ class XmlTag:
         # Values checked copied from 'odoo.tools.convert.str2bool'
         return noupdate.lower() not in ("0", "false", "off")
 
+    def _get_xml(self) -> str:
+        """Return the raw XML source of the tag, from its opening tag
+        to its closing tag."""
+        source = self.xmlfile.get_source(self.node)
+        if source is None:
+            # Fallback: re-serialize the element from the parsed tree
+            self.node.tail = None
+            source = ET.tostring(self.node, encoding="unicode")
+        return source
+
     def to_dict(self) -> Dict:
         """Convert to dictionary format."""
         result = {
@@ -182,6 +292,7 @@ class XmlTag:
             "model": self.model,
             "file_path": str(self.xmlfile.relative_file_path),
             "data": self.data,
+            "xml": self._get_xml(),
             "loaded": self.loaded,
         }
         if self.name:
@@ -266,20 +377,26 @@ class XmlRecord(XmlTag):
         data = {}
         for field in self.node.findall("field"):
             if field_name := field.get("name"):
-                # If field has a 'ref' attribute, use that as the value
-                # This handles cases like <field name="inherit_id" ref="base.view_id"/>
-                if field.get("ref"):
-                    data[field_name] = field.get("ref")
+                # Skip markup fields: their value is the serialization of
+                # the field's children, already preserved in the raw 'xml'
+                # source of the record
+                if field.get("type") in MARKUP_FIELD_TYPES:
+                    continue
+                # Field value: mirror the source priority of Odoo (see
+                # 'odoo/tools/convert.py', methods '_tag_record()' and
+                # '_eval_xml()'); the value-bearing attributes are mutually
+                # exclusive in practice
+                if search := field.get("search"):
+                    data[field_name] = search
+                elif ref := field.get("ref"):
+                    data[field_name] = ref
+                elif eval_expr := field.get("eval"):
+                    data[field_name] = eval_expr
+                elif file_path := field.get("file"):
+                    data[field_name] = file_path
                 else:
-                    # For XML fields, extract the full XML content including child elements
-                    if self.model == "ir.ui.view" and field.get("name") == "arch":
-                        arch = "".join(
-                            ET.tostring(child, encoding="unicode") for child in field
-                        )
-                        data[field_name] = (field.text or "") + arch
-                    else:
-                        # Otherwise use the text content
-                        data[field_name] = field.text
+                    # Otherwise use the text content
+                    data[field_name] = field.text
         return data
 
     def _extract_target_model(self) -> Optional[str]:
@@ -320,10 +437,7 @@ class XmlTemplate(XmlTag):
 
     def _extract_data(self) -> Dict:
         """Extract template data and convert to ir.ui.view format."""
-        data = {
-            # Extract arch field - this contains the template content
-            "arch": ET.tostring(self.node, encoding="unicode"),
-        }
+        data = {}
         # Handle template inheritance if present
         if inherit_id := self.node.get("inherit_id"):
             data["inherit_id"] = inherit_id
