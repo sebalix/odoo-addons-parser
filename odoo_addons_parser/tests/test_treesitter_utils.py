@@ -202,6 +202,14 @@ class MyClass:
         name = ts_utils.get_assignment_target_name(assignment)
         self.assertEqual(name, "name")
 
+    def test_get_assignment_target_name_annotated(self):
+        """Test getting assignment target name with a type annotation."""
+        code = "name: str = 'test'"
+        root = self._parse_code(code)
+        assignment = root.child(0).child(0)
+        name = ts_utils.get_assignment_target_name(assignment)
+        self.assertEqual(name, "name")
+
     # Tests for get_assignment_value
     def test_get_assignment_value_string(self):
         """Test getting assignment value as string."""
@@ -226,6 +234,31 @@ class MyClass:
         assignment = root.child(0).child(0)
         value = ts_utils.get_assignment_value(assignment)
         self.assertEqual(value.type, "call")
+
+    def test_get_assignment_value_annotated_call(self):
+        """Test getting assignment value with a type annotation."""
+        code = "x: int = func()"
+        root = self._parse_code(code)
+        assignment = root.child(0).child(0)
+        value = ts_utils.get_assignment_value(assignment)
+        self.assertEqual(value.type, "call")
+
+    def test_get_assignment_value_annotated_without_value(self):
+        """Test an annotated assignment without a value."""
+        code = "x: int"
+        root = self._parse_code(code)
+        assignment = root.child(0).child(0)
+        value = ts_utils.get_assignment_value(assignment)
+        self.assertIsNone(value)
+
+    def test_get_assignment_value_identifier(self):
+        """Test getting an identifier as assignment value."""
+        code = "x = y"
+        root = self._parse_code(code)
+        assignment = root.child(0).child(0)
+        value = ts_utils.get_assignment_value(assignment)
+        self.assertEqual(value.type, "identifier")
+        self.assertEqual(value.text.decode(), "y")
 
     # Tests for type checking functions
     def test_is_string_constant_string(self):
