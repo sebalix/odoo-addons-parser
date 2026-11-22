@@ -16,7 +16,7 @@ if not os.environ.get("TEST_ODOO_PARSER"):
     raise unittest.SkipTest("Tests of OdooParser are disabled.")
 
 
-ODOO_LAST_VERSION = 19
+ODOO_LAST_VERSION = 20
 SUPPORT_X_VERSIONS = 3
 ODOO_VERSIONS = [
     float(version)
@@ -68,6 +68,11 @@ class TestOdoo(common.CommonCase):
             self.assertIn("BaseModel", framework_models)
             self.assertIn("Model", framework_models)
             self.assertIn("TransientModel", framework_models)
+            if version >= 20:
+                self.assertIn("CachedModel", framework_models)
+                self.assertEqual(
+                    data["base"]["models"]["res.company"]["type"], "CachedModel"
+                )
             self.assertIn("res.partner", list(data["base"]["models"]))
             # 'res.partner' and 'res.users' are declared several times in 'base'
             # module (one with '_name' and another ones with '_inherit'), but it's
@@ -88,7 +93,8 @@ class TestOdoo(common.CommonCase):
         version = self.odoo_versions[-1]
         folder_path = self.download_path.joinpath(f"odoo-{version}")
         # Disable code_stats to make tests faster
-        # + collect BaseModel, Model, TransientModel into 'base' module
+        # + collect BaseModel, Model, TransientModel and CachedModel into
+        # the 'base' module
         parser = OdooParser(folder_path, code_stats=False, base_models_key="base")
         data = parser.to_dict()
         self.assertNotIn("__odoo__", data)
@@ -97,5 +103,7 @@ class TestOdoo(common.CommonCase):
         self.assertIn("BaseModel", models)
         self.assertIn("Model", models)
         self.assertIn("TransientModel", models)
+        if version >= 20:
+            self.assertIn("CachedModel", models)
         self.assertIn("res.partner", models)
         self.assertIn("base", models)

@@ -15,6 +15,8 @@ ODOO_BASE_MODELS_PATHS = (
     # Odoo >= 19.0
     pathlib.Path("odoo").joinpath("orm", "models.py"),
     pathlib.Path("odoo").joinpath("orm", "models_transient.py"),
+    # Odoo >= 20.0
+    pathlib.Path("odoo").joinpath("orm", "models_cached.py"),
 )
 ODOO_BASE_ADDONS_PATH = pathlib.Path("odoo").joinpath("addons")
 ODOO_ADDONS_PATH = pathlib.Path("addons")
