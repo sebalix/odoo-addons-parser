@@ -12,6 +12,7 @@ from . import treesitter_utils as ts_utils
 BASE_CLASSES = [
     "AbstractModel",
     "BaseModel",
+    "CachedModel",
     "Model",
     "TransientModel",
 ]
@@ -141,7 +142,8 @@ class OdooModel:
     def _get_type(class_node) -> str:
         """Return the type of the Odoo model.
 
-        Available types are 'Model', 'AbstractModel', 'TransientModel'...
+        Available types are 'Model', 'AbstractModel', 'CachedModel',
+        'TransientModel'...
         """
         bases = ts_utils.get_class_bases(class_node)
         for base in bases:
