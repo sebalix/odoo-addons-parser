@@ -104,6 +104,10 @@ def find_assignments_in_block(
 def get_assignment_target_name(assign_node: Node) -> typing.Optional[str]:
     """Get the target variable name from an assignment."""
     assert assign_node.type == "assignment"
+    target_node = assign_node.child_by_field_name("left")
+    if target_node is not None and target_node.type == "identifier":
+        return target_node.text.decode()
+    # Fallback for grammar versions not exposing the 'left' field
     for child in assign_node.children:
         if child.type == "identifier":
             return child.text.decode()
@@ -113,9 +117,19 @@ def get_assignment_target_name(assign_node: Node) -> typing.Optional[str]:
 def get_assignment_value(assign_node: Node) -> Node:
     """Get the value node from an assignment."""
     assert assign_node.type == "assignment"
-    # Find the value (after the '=' operator)
+    # Use the 'right' field to support annotated assignments like
+    # 'field: ResCompany = fields.Many2one()', otherwise the annotation node
+    # would be returned instead of the value.
+    value_node = assign_node.child_by_field_name("right")
+    if value_node is not None:
+        return value_node
+    # Fallback for grammar versions not exposing the 'right' field
+    found_assign = False
     for child in assign_node.children:
-        if child.type != "identifier" and child.text.decode() != "=":
+        if child.type == "=":
+            found_assign = True
+            continue
+        if found_assign:
             return child
     return None
 

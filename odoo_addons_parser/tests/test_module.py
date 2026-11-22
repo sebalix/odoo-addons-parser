@@ -18,6 +18,15 @@ class TestModule(common.CommonCase):
         self.assertDictEqual(mod.models, self.module_models)
         self.assertEqual(set(mod.data), set(self.module_data))
 
+    def test_type_hinted_fields(self):
+        """Fields declared with a type annotation (Odoo 18+ style) are parsed."""
+        mod = self._run_module_parser()
+        fields = mod.models["res.partner"]["fields"]
+        for field_name in ("custom_field", "foo_id", "bar_ids", "new_custom_field"):
+            self.assertIn(field_name, fields)
+        self.assertEqual(fields["foo_id"]["comodel_name"], "foo.model")
+        self.assertEqual(fields["bar_ids"]["inverse_name"], "partner_id")
+
     def test_init_no_code_stats(self):
         mod = self._run_module_parser(code_stats=False)
         self.assertEqual(mod.name, self.module_name)

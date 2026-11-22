@@ -21,7 +21,7 @@ class CommonCase(unittest.TestCase):
         cls.module_code_stats = {
             "CSS": 0,
             "JavaScript": 0,
-            "Python": 42,
+            "Python": 46,
             "XML": 148,
         }
         cls.module_manifest = {
@@ -54,9 +54,9 @@ class CommonCase(unittest.TestCase):
                     "computed_field": {
                         "name": "computed_field",
                         "type": "Char",
-                        "lineno": 14,
-                        "end_lineno": 18,
-                        "code": '    computed_field = fields.Char(\n        compute="_compute_computed_field",\n        readonly=False,\n        store=True,\n    )',
+                        "lineno": 20,
+                        "end_lineno": 24,
+                        "code": '    computed_field: str = fields.Char(\n        compute="_compute_computed_field",\n        readonly=False,\n        store=True,\n    )',
                         "kwargs": {
                             "compute": "_compute_computed_field",
                             "readonly": False,
@@ -66,9 +66,9 @@ class CommonCase(unittest.TestCase):
                     "custom_field": {
                         "name": "custom_field",
                         "type": "Char",
-                        "lineno": 13,
-                        "end_lineno": 13,
-                        "code": '    custom_field = fields.Char(required=True, default="Test")',
+                        "lineno": 19,
+                        "end_lineno": 19,
+                        "code": '    custom_field: str = fields.Char(required=True, default="Test")',
                         "kwargs": {
                             "required": True,
                             "default": "Test",
@@ -77,8 +77,8 @@ class CommonCase(unittest.TestCase):
                     "good_customer": {
                         "name": "good_customer",
                         "type": "Boolean",
-                        "lineno": 19,
-                        "end_lineno": 19,
+                        "lineno": 25,
+                        "end_lineno": 25,
                         "code": "    good_customer = Boolean(default=lambda self: self._default_good_customer())",
                         "kwargs": {
                             "default": "lambda self: self._default_good_customer()",
@@ -87,9 +87,9 @@ class CommonCase(unittest.TestCase):
                     "foo_id": {
                         "name": "foo_id",
                         "type": "Many2one",
-                        "lineno": 21,
-                        "end_lineno": 26,
-                        "code": '    foo_id = fields.Many2one(\n        # Relation as keyword parameter\n        comodel_name="foo.model",\n        ondelete="restrict",\n        string="Foo",\n    )',
+                        "lineno": 27,
+                        "end_lineno": 32,
+                        "code": '    foo_id: ResPartner = fields.Many2one(\n        # Relation as keyword parameter\n        comodel_name="foo.model",\n        ondelete="restrict",\n        string="Foo",\n    )',
                         "kwargs": {
                             "comodel_name": "foo.model",
                             "ondelete": "restrict",
@@ -101,9 +101,9 @@ class CommonCase(unittest.TestCase):
                     "bar_ids": {
                         "name": "bar_ids",
                         "type": "One2many",
-                        "lineno": 27,
-                        "end_lineno": 32,
-                        "code": '    bar_ids = fields.One2many(\n        # Relation as positional parameter\n        "bar.model",\n        "partner_id",\n        string="Bars",\n    )',
+                        "lineno": 33,
+                        "end_lineno": 38,
+                        "code": '    bar_ids: Bar = fields.One2many(\n        # Relation as positional parameter\n        "bar.model",\n        "partner_id",\n        string="Bars",\n    )',
                         "args": ["bar.model", "partner_id"],
                         "kwargs": {
                             "string": "Bars",
@@ -115,8 +115,8 @@ class CommonCase(unittest.TestCase):
                     "new_bar_ids": {
                         "name": "new_bar_ids",
                         "type": "One2many",
-                        "lineno": 33,
-                        "end_lineno": 37,
+                        "lineno": 39,
+                        "end_lineno": 43,
                         "code": '    new_bar_ids = fields.One2many(\n        comodel_name="bar.model",\n        inverse_name="partner_id",\n        string="New Bars",\n    )',
                         "kwargs": {
                             "comodel_name": "bar.model",
@@ -130,9 +130,9 @@ class CommonCase(unittest.TestCase):
                     "new_custom_field": {
                         "name": "new_custom_field",
                         "type": "Char",
-                        "lineno": 57,
-                        "end_lineno": 57,
-                        "code": "    new_custom_field = fields.Char()",
+                        "lineno": 63,
+                        "end_lineno": 63,
+                        "code": "    new_custom_field: str = fields.Char()",
                     },
                 },
                 "inherit": "res.partner",
@@ -141,15 +141,15 @@ class CommonCase(unittest.TestCase):
                         "decorators": ("api.depends('custom_field')",),
                         "name": "_compute_computed_field",
                         "signature": ("self",),
-                        "lineno": 40,
-                        "end_lineno": 42,
+                        "lineno": 46,
+                        "end_lineno": 48,
                         "code": "    def _compute_computed_field(self):\n        for rec in self:\n            rec.computed_field = rec.customer_field",
                     },
                     "action_custom": {
                         "name": "action_custom",
                         "signature": ("self", "data", "**kwargs"),
-                        "lineno": 44,
-                        "end_lineno": 50,
+                        "lineno": 50,
+                        "end_lineno": 56,
                         "code": '    def action_custom(self, data, **kwargs):\n        # Use of \'match/case\' syntax, available from Python 3.10+\n        match data:\n            case 0:\n                print("Win")\n            case 1:\n                print("Lost")',
                     },
                 },

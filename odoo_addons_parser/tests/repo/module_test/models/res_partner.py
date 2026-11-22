@@ -1,30 +1,36 @@
 # Copyright 2025 Sebastien Alix <https://github.com/sebalix>
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
 
+from __future__ import annotations
+
+import typing
+
 from odoo import api, fields, models
+from odoo.addons import x
 from odoo.fields import Boolean
 
-from odoo.addons import x
+if typing.TYPE_CHECKING:
+    from odoo.addons.bar.models.bar import Bar
 
 
 class ResPartner(models.Model):
     _inherit = "res.partner"
 
-    custom_field = fields.Char(required=True, default="Test")
-    computed_field = fields.Char(
+    custom_field: str = fields.Char(required=True, default="Test")
+    computed_field: str = fields.Char(
         compute="_compute_computed_field",
         readonly=False,
         store=True,
     )
     good_customer = Boolean(default=lambda self: self._default_good_customer())
     special_field = x.fields.Special()
-    foo_id = fields.Many2one(
+    foo_id: ResPartner = fields.Many2one(
         # Relation as keyword parameter
         comodel_name="foo.model",
         ondelete="restrict",
         string="Foo",
     )
-    bar_ids = fields.One2many(
+    bar_ids: Bar = fields.One2many(
         # Relation as positional parameter
         "bar.model",
         "partner_id",
@@ -54,7 +60,7 @@ class ResPartner(models.Model):
 class ResPartner(models.Model):  # noqa: F811
     _inherit = "res.partner"
 
-    new_custom_field = fields.Char()
+    new_custom_field: str = fields.Char()
 
     _test_attr = {}
     _test_attr["test"] = True
