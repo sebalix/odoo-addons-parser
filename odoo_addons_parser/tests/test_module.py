@@ -27,6 +27,30 @@ class TestModule(common.CommonCase):
         self.assertEqual(fields["foo_id"]["comodel_name"], "foo.model")
         self.assertEqual(fields["bar_ids"]["inverse_name"], "partner_id")
 
+    def test_model_original_declaration_metadata(self):
+        """The `_name` declaration drives the model metadata.
+
+        An extension declaration parsed first (e.g. `website` in Odoo 20)
+        must not override the original declaration metadata.
+        """
+        mod = self._run_module_parser(code_stats=False, scan_data=False)
+        model = mod.models["test.model"]
+        self.assertEqual(model["name"], "test.model")
+        self.assertEqual(model["class_name"], "TestModel")
+        self.assertEqual(model["type"], "CachedModel")
+        self.assertEqual(model["file_path"], "models/model_metadata.py")
+        self.assertEqual(model["inherit"], ["test.model", "test.mixin"])
+        self.assertEqual(model["inherits"], {"'res.partner'": "'partner_id'"})
+        self.assertEqual(set(model["fields"]), {"extended_field", "original_field"})
+
+    def test_model_self_inherit_removed_for_owned_model(self):
+        """Self-inheritance is dropped when the module implements the model."""
+        mod = self._run_module_parser(code_stats=False, scan_data=False)
+        model = mod.models["test.owned.model"]
+        self.assertEqual(model["name"], "test.owned.model")
+        self.assertEqual(model["class_name"], "TestOwnedModel")
+        self.assertEqual(model["inherit"], ["other.mixin"])
+
     def test_init_no_code_stats(self):
         mod = self._run_module_parser(code_stats=False)
         self.assertEqual(mod.name, self.module_name)

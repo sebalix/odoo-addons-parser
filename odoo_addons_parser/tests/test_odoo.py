@@ -73,6 +73,14 @@ class TestOdoo(common.CommonCase):
                 self.assertEqual(
                     data["base"]["models"]["res.company"]["type"], "CachedModel"
                 )
+                # The `website` model moved to `base`, and the one from the
+                # `website` module only inherits it: its original declaration
+                # must drive the module metadata, whatever the scan order.
+                website = data["website"]["models"]["website"]
+                self.assertEqual(website["type"], "CachedModel")
+                self.assertIn("website", website["inherit"])
+                self.assertIn("website.structured_data.mixin", website["inherit"])
+                self.assertIn("inherits", data["website"]["models"]["website.page"])
             self.assertIn("res.partner", list(data["base"]["models"]))
             # 'res.partner' and 'res.users' are declared several times in 'base'
             # module (one with '_name' and another ones with '_inherit'), but it's

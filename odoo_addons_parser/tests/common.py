@@ -21,7 +21,7 @@ class CommonCase(unittest.TestCase):
         cls.module_code_stats = {
             "CSS": 0,
             "JavaScript": 0,
-            "Python": 46,
+            "Python": 61,
             "XML": 148,
         }
         cls.module_manifest = {
@@ -161,6 +161,46 @@ class CommonCase(unittest.TestCase):
                 "name": "res.users",
                 "inherit": ["res.users", "test"],
                 "type": "Model",
+            },
+            "test.model": {
+                "file_path": "models/model_metadata.py",
+                "class_name": "TestModel",
+                "name": "test.model",
+                "inherit": ["test.model", "test.mixin"],
+                "inherits": {"'res.partner'": "'partner_id'"},
+                "type": "CachedModel",
+                "fields": {
+                    "extended_field": {
+                        "name": "extended_field",
+                        "type": "Char",
+                        "lineno": 13,
+                        "end_lineno": 13,
+                        "code": "    extended_field = fields.Char()",
+                    },
+                    "original_field": {
+                        "name": "original_field",
+                        "type": "Char",
+                        "lineno": 21,
+                        "end_lineno": 21,
+                        "code": "    original_field = fields.Char()",
+                    },
+                },
+            },
+            "test.owned.model": {
+                "file_path": "models/model_metadata.py",
+                "class_name": "TestOwnedModel",
+                "name": "test.owned.model",
+                "inherit": ["other.mixin"],
+                "type": "Model",
+                "fields": {
+                    "other_field": {
+                        "name": "other_field",
+                        "type": "Char",
+                        "lineno": 35,
+                        "end_lineno": 35,
+                        "code": "    other_field = fields.Char()",
+                    },
+                },
             },
         }
         cls.module_data = {
