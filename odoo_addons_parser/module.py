@@ -99,7 +99,7 @@ class ModuleParser:
                 for language in self.languages:
                     if not summary.language.startswith(language):
                         continue
-                    summaries[language] += summary.code_count
+                    summaries[language] += summary.source_count
             self.code = summaries
 
     def _run_code_stats(self, file_path: pathlib.Path):
