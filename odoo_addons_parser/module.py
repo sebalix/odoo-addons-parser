@@ -46,6 +46,7 @@ class ModuleParser:
         self.models = {}
         self.data = {}
         self.demo = {}
+        self._owned_models = set()
         self._run()
 
     @staticmethod
@@ -90,6 +91,8 @@ class ModuleParser:
                 self._run_scan_models(file_path)
             if self._scan_data and file_path.suffix in [".xml", ".csv"]:
                 self._run_scan_data(file_path)
+        if self._scan_models:
+            self._finalize_models()
         if self._code_stats:
             summaries = dict.fromkeys(self.languages, 0)
             for summary in self.summary.language_to_language_summary_map.values():
@@ -113,6 +116,48 @@ class ModuleParser:
         else:
             self.summary.add(source_analysis)
 
+    @staticmethod
+    def _get_inherit_list(inherit) -> list:
+        """Return an `_inherit` value as a list of model names."""
+        if not inherit:
+            return []
+        if isinstance(inherit, str):
+            return [inherit]
+        return list(inherit)
+
+    @classmethod
+    def _merge_inherit(cls, current, new):
+        """Merge two `_inherit` values, keeping declaration order."""
+        if not current:
+            return new
+        if not new:
+            return current
+        values = []
+        for inherit in (current, new):
+            for value in cls._get_inherit_list(inherit):
+                if value not in values:
+                    values.append(value)
+        if not values:
+            return None
+        # Keep the string representation when there is a single value declared
+        # as a string.
+        if isinstance(current, str) and isinstance(new, str) and len(values) == 1:
+            return values[0]
+        return values
+
+    @classmethod
+    def _is_model_owner(cls, model, key) -> bool:
+        """Check if the module implements the model declared by `model`.
+
+        A `_name` declaration inheriting itself redefines a model coming from
+        another module, it doesn't mean current module implements it.
+        """
+        return (
+            key is not None
+            and model.get("name") == key
+            and key not in cls._get_inherit_list(model.get("inherit"))
+        )
+
     def _run_scan_models(self, file_path: pathlib.Path):
         try:
             pyfile = PyFile(file_path, module_path=self.folder_path)
@@ -127,20 +172,57 @@ class ModuleParser:
                 # e.g. `_inherit = ['res.partner']`, considers - like Odoo - first
                 # element as current model name
                 key = key[0]
-            if key not in self.models:
-                self.models.setdefault(key, {}).update(model)
+            if self._is_model_owner(model, key):
+                self._owned_models.add(key)
+            current = self.models.get(key)
+            if current is None:
+                self.models[key] = dict(model)
+                continue
+
+            # Merge fields and methods, the latest declaration wins.
+            fields = dict(current.get("fields") or {})
+            fields.update(model.get("fields") or {})
+            methods = dict(current.get("methods") or {})
+            methods.update(model.get("methods") or {})
+            inherit = self._merge_inherit(current.get("inherit"), model.get("inherit"))
+            inherits = dict(current.get("inherits") or {})
+            inherits.update(model.get("inherits") or {})
+
+            # A declaration with `_name` is the original/new definition of the
+            # data model for current module. Its metadata (file path, class
+            # name, type, `_order`...) must prevail over the ones coming from
+            # `_inherit`-only declarations, whatever the scan order.
+            if key is not None and model.get("name") == key and not current.get("name"):
+                aggregated = dict(model)
             else:
-                if model.get("fields"):
-                    self.models[key].setdefault("fields", {}).update(model["fields"])
-                if model.get("methods"):
-                    self.models[key].setdefault("methods", {}).update(model["methods"])
-                # Handle cases where more than one file declare the same data model
-                # in current scanned module, and one of them is the original
-                # declaration w/o inheritance).
-                #   => Consider the data model as original/new for current module.
-                if model.get("name") == key and self.models[key].get("inherit") == key:
-                    self.models[key]["name"] = key
-                    del self.models[key]["inherit"]
+                aggregated = current
+            if fields:
+                aggregated["fields"] = fields
+            if methods:
+                aggregated["methods"] = methods
+            if inherit is not None:
+                aggregated["inherit"] = inherit
+            if inherits:
+                aggregated["inherits"] = inherits
+            self.models[key] = aggregated
+
+    def _finalize_models(self):
+        """Remove self-inheritance from models implemented by this module."""
+        for key in self._owned_models:
+            model = self.models.get(key)
+            if not model or "inherit" not in model:
+                continue
+            inherit = model["inherit"]
+            values = []
+            for value in self._get_inherit_list(inherit):
+                if value != key and value not in values:
+                    values.append(value)
+            if not values:
+                del model["inherit"]
+            elif isinstance(inherit, str):
+                model["inherit"] = values[0]
+            else:
+                model["inherit"] = values
 
     def _run_scan_data(self, file_path: pathlib.Path):
         """Parse XML and CSV files and extract data records."""
