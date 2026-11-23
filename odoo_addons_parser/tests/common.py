@@ -21,7 +21,7 @@ class CommonCase(unittest.TestCase):
         cls.module_code_stats = {
             "CSS": 0,
             "JavaScript": 0,
-            "Python": 61,
+            "Python": 87,
             "XML": 148,
         }
         cls.module_manifest = {
@@ -151,6 +151,13 @@ class CommonCase(unittest.TestCase):
                         "lineno": 50,
                         "end_lineno": 56,
                         "code": '    def action_custom(self, data, **kwargs):\n        # Use of \'match/case\' syntax, available from Python 3.10+\n        match data:\n            case 0:\n                print("Win")\n            case 1:\n                print("Lost")',
+                    },
+                    "_dummy_sql_query": {
+                        "name": "_dummy_sql_query",
+                        "signature": ("self",),
+                        "lineno": 68,
+                        "end_lineno": 73,
+                        "code": '    def _dummy_sql_query(self):\n        return """\n            SELECT *\n            FROM res_partner\n            WHERE id = %s\n        """',
                     },
                 },
                 "type": "Model",

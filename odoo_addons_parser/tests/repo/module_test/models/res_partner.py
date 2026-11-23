@@ -64,3 +64,10 @@ class ResPartner(models.Model):  # noqa: F811
 
     _test_attr = {}
     _test_attr["test"] = True
+
+    def _dummy_sql_query(self):
+        return """
+            SELECT *
+            FROM res_partner
+            WHERE id = %s
+        """
